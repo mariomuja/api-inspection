@@ -4,7 +4,8 @@
   "description": "API Design Inspector - Analyze public web service APIs against industry best practices",
   "scripts": {
     "dev": "cd frontend && npm start",
-    "build": "cd frontend && npm run build",
+    "build": "cd frontend && npm install && npm run build -- --configuration=production",
+    "vercel-build": "npm run build",
     "test": "cd frontend && npm test",
     "test:api": "cd api && npm test"
   },
