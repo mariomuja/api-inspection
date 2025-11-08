@@ -249,179 +249,168 @@
       .violations-list {
         display: flex;
         flex-direction: column;
-        gap: 24px;
-        padding: 16px 0;
+        gap: 16px;
+        padding: 12px 0;
 
         .violation-item {
-          padding: 20px;
+          padding: 16px;
           background-color: #ffffff;
-          border-radius: 12px;
+          border-radius: 8px;
           border-left: 4px solid #ff9800;
-          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-          &:hover {
-            transform: translateX(4px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-          }
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 
           .violation-header {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
 
             h3 {
               margin: 0;
-              font-size: 18px;
+              font-size: 16px;
+              font-weight: 600;
+              color: #333;
+            }
+
+            mat-chip {
+              height: 24px;
+              font-size: 11px;
             }
           }
 
           .violation-details {
-            margin-bottom: 12px;
-            padding: 8px;
-            background-color: #fff;
+            margin-bottom: 10px;
+            padding: 6px 10px;
+            background-color: #f8f9fa;
             border-radius: 4px;
+            border-left: 3px solid #667eea;
+
+            strong {
+              font-size: 12px;
+              color: #666;
+            }
 
             code {
               color: #d32f2f;
               font-family: 'Courier New', monospace;
+              font-size: 13px;
+              font-weight: 500;
             }
           }
 
-          .violation-section {
+          .violation-content {
             margin-bottom: 12px;
-
-            strong {
-              display: flex;
-              align-items: center;
-              gap: 4px;
-              margin-bottom: 6px;
-              color: rgba(0, 0, 0, 0.87);
-
-              mat-icon {
-                font-size: 18px;
-                width: 18px;
-                height: 18px;
-              }
-            }
 
             p {
-              margin: 0;
-              color: rgba(0, 0, 0, 0.7);
-              line-height: 1.6;
+              margin: 0 0 8px 0;
+              color: #555;
+              line-height: 1.5;
+              font-size: 14px;
             }
 
-            ul {
-              margin: 8px 0;
-              padding-left: 24px;
-
-              li {
-                margin-bottom: 4px;
-                color: rgba(0, 0, 0, 0.7);
-              }
+            .violation-description {
+              font-weight: 500;
+              color: #333;
             }
 
-            &.recommendation {
-              background-color: #e8f5e9;
-              padding: 12px;
-              border-radius: 4px;
-            }
-
-            &.impact {
-              background-color: #fff3e0;
-              padding: 12px;
-              border-radius: 4px;
+            .violation-details-text {
+              color: #666;
+              font-size: 13px;
             }
           }
-        }
-      }
 
-      .recommendation-item {
-        padding: 24px;
-        background-color: #ffffff;
-        border-radius: 12px;
-        margin-bottom: 20px;
-        border-left: 4px solid #667eea;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+          .violation-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
 
-        &:hover {
-          transform: translateX(4px);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-        }
-
-        .recommendation-header {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 12px;
-
-          h3 {
-            margin: 0;
-            font-size: 18px;
-          }
-        }
-
-        .recommendation-category {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 12px;
-          color: rgba(0, 0, 0, 0.6);
-          font-size: 14px;
-
-          mat-icon {
-            font-size: 18px;
-            width: 18px;
-            height: 18px;
-          }
-        }
-
-        .recommendation-description {
-          margin-bottom: 16px;
-
-          p {
-            margin: 0;
-            color: rgba(0, 0, 0, 0.7);
-            line-height: 1.6;
-          }
-        }
-
-        .action-items {
-          background-color: #fff;
-          padding: 16px;
-          border-radius: 4px;
-
-          strong {
-            display: block;
-            margin-bottom: 12px;
-            color: rgba(0, 0, 0, 0.87);
-          }
-
-          ul {
-            margin: 0;
-            padding: 0;
-            list-style: none;
-
-            li {
+            .action-box {
               display: flex;
-              align-items: flex-start;
-              gap: 8px;
-              margin-bottom: 8px;
-              color: rgba(0, 0, 0, 0.7);
+              gap: 10px;
+              padding: 10px;
+              border-radius: 6px;
+              font-size: 13px;
 
               mat-icon {
-                font-size: 18px;
-                width: 18px;
-                height: 18px;
-                color: #4caf50;
-                margin-top: 2px;
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
+                flex-shrink: 0;
+              }
+
+              strong {
+                display: block;
+                margin-bottom: 4px;
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              }
+
+              p {
+                margin: 0;
+                line-height: 1.4;
+                color: #444;
+              }
+
+              &.recommendation-box {
+                background-color: #e8f5e9;
+                border-left: 3px solid #4caf50;
+
+                mat-icon {
+                  color: #4caf50;
+                }
+
+                strong {
+                  color: #2e7d32;
+                }
+              }
+
+              &.impact-box {
+                background-color: #fff3e0;
+                border-left: 3px solid #ff9800;
+
+                mat-icon {
+                  color: #ff9800;
+                }
+
+                strong {
+                  color: #e65100;
+                }
+              }
+            }
+          }
+
+          .violation-examples {
+            strong {
+              display: block;
+              margin-bottom: 8px;
+              font-size: 12px;
+              color: #666;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+
+            .examples-list {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 6px;
+
+              .example-badge {
+                padding: 4px 10px;
+                background-color: #e3f2fd;
+                color: #1976d2;
+                border-radius: 4px;
+                font-size: 12px;
+                font-family: 'Courier New', monospace;
+                font-weight: 500;
+                border: 1px solid #90caf9;
               }
             }
           }
         }
       }
+
     }
 
     .no-issues-card {
@@ -462,9 +451,19 @@
       }
     }
 
-    .results-section .summary-card .summary-grid {
-      grid-template-columns: 1fr;
-      text-align: center;
+    .results-section {
+      .summary-card .summary-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .violations-card {
+        .violations-list .violation-item {
+          .violation-actions {
+            grid-template-columns: 1fr;
+          }
+        }
+      }
     }
   }
 }
