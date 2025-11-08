@@ -122,6 +122,59 @@
         </div>
       </mat-card-header>
       <mat-card-content>
+        <!-- Filters Section -->
+        <div class="filters-section">
+          <div class="filter-group">
+            <label class="filter-label">
+              <mat-icon>filter_list</mat-icon>
+              Filter by Severity:
+            </label>
+            <div class="filter-chips">
+              <mat-chip 
+                [class.active]="filterSeverity().includes('error')"
+                (click)="toggleSeverityFilter('error')"
+                class="filter-chip error-chip">
+                <mat-icon *ngIf="filterSeverity().includes('error')">check</mat-icon>
+                Error
+              </mat-chip>
+              <mat-chip 
+                [class.active]="filterSeverity().includes('warning')"
+                (click)="toggleSeverityFilter('warning')"
+                class="filter-chip warning-chip">
+                <mat-icon *ngIf="filterSeverity().includes('warning')">check</mat-icon>
+                Warning
+              </mat-chip>
+              <mat-chip 
+                [class.active]="filterSeverity().includes('info')"
+                (click)="toggleSeverityFilter('info')"
+                class="filter-chip info-chip">
+                <mat-icon *ngIf="filterSeverity().includes('info')">check</mat-icon>
+                Info
+              </mat-chip>
+            </div>
+          </div>
+
+          <div class="filter-group" *ngIf="availableSources().length > 0">
+            <label class="filter-label">
+              <mat-icon>verified</mat-icon>
+              Filter by Source:
+            </label>
+            <div class="filter-chips">
+              <mat-chip 
+                *ngFor="let source of availableSources()"
+                [class.active]="filterSource().includes(source)"
+                (click)="toggleSourceFilter(source)"
+                class="filter-chip source-chip">
+                <mat-icon *ngIf="filterSource().includes(source)">check</mat-icon>
+                {{ source }}
+              </mat-chip>
+            </div>
+          </div>
+
+          <div class="filter-summary">
+            Showing {{ getFilteredViolations().length }} of {{ result.violations.length }} violations
+          </div>
+        </div>
         <mat-accordion multi>
           <mat-expansion-panel *ngFor="let category of getCategoryKeys()" [expanded]="true">
             <mat-expansion-panel-header>
@@ -152,7 +205,13 @@
                 </div>
 
                 <div class="violation-details" *ngIf="violation.endpoint">
-                  <strong>Endpoint:</strong> <code>{{ violation.method }} {{ violation.endpoint }}</code>
+                  <strong>Endpoint:</strong> 
+                  <code class="endpoint-link" 
+                        (click)="openEndpointDetails(violation.endpoint, result.serviceUrl)"
+                        matTooltip="Click to view OpenAPI specification">
+                    {{ violation.method }} {{ violation.endpoint }}
+                    <mat-icon class="link-icon">open_in_new</mat-icon>
+                  </code>
                 </div>
 
                 <div class="violation-content">

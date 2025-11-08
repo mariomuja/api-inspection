@@ -264,5 +264,39 @@ export class ApiAnalysisService {
       sourceFilter: sourceFilter || 'all'
     });
   }
+
+  getOpenApiSpec(serviceUrl: string): Observable<any> {
+    // Try common OpenAPI spec locations
+    const specUrls = [
+      `${serviceUrl}/openapi.json`,
+      `${serviceUrl}/swagger.json`,
+      `${serviceUrl}/api-docs`,
+      `${serviceUrl}/v1/openapi.json`,
+      `${serviceUrl}/v2/openapi.json`,
+      `${serviceUrl}/docs/openapi.json`
+    ];
+
+    // Try each URL until one works
+    return new Observable(observer => {
+      const tryNextUrl = (index: number) => {
+        if (index >= specUrls.length) {
+          observer.error(new Error('OpenAPI specification not found'));
+          return;
+        }
+
+        this.http.get(specUrls[index]).subscribe({
+          next: (spec) => {
+            observer.next(spec);
+            observer.complete();
+          },
+          error: () => {
+            tryNextUrl(index + 1);
+          }
+        });
+      };
+
+      tryNextUrl(0);
+    });
+  }
 }
 

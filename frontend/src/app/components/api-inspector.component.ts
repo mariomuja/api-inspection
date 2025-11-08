@@ -13,11 +13,14 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { ApiAnalysisService } from '../services/api-analysis.service';
 import { PdfExportService } from '../services/pdf-export.service';
 import { WebService, ApiAnalysisResult, Violation } from '../models/web-service.model';
 import { RuleSource, RULE_SOURCES } from '../models/rule-source.model';
+import { OpenApiDialogComponent } from './openapi-dialog.component';
 
 @Component({
   selector: 'app-api-inspector',
@@ -36,7 +39,9 @@ import { RuleSource, RULE_SOURCES } from '../models/rule-source.model';
     MatExpansionModule,
     MatTooltipModule,
     MatDividerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatDialogModule,
+    MatCheckboxModule
   ],
   templateUrl: './api-inspector.component.html',
   styleUrls: ['./api-inspector.component.scss']
@@ -51,11 +56,17 @@ export class ApiInspectorComponent implements OnInit {
   isAnalyzing = signal<boolean>(false);
   analysisResult = signal<ApiAnalysisResult | null>(null);
   error = signal<string>('');
+  
+  // Filters
+  filterSeverity = signal<string[]>(['error', 'warning', 'info']);
+  filterSource = signal<string[]>([]);
+  availableSources = signal<string[]>([]);
 
   constructor(
     private apiAnalysisService: ApiAnalysisService,
     private pdfExportService: PdfExportService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -120,6 +131,12 @@ export class ApiInspectorComponent implements OnInit {
       next: (result) => {
         this.analysisResult.set(result);
         this.isAnalyzing.set(false);
+        
+        // Extract unique sources from violations
+        const sources = [...new Set(result.violations.map(v => v.source).filter(s => s))] as string[];
+        this.availableSources.set(sources);
+        this.filterSource.set(sources); // Initially show all
+        
         this.snackBar.open('Analysis completed successfully', 'Close', {
           duration: 3000
         });
@@ -186,13 +203,24 @@ export class ApiInspectorComponent implements OnInit {
     return '#f44336';
   }
 
-  getViolationsByCategory(): { [key: string]: Violation[] } {
+  getFilteredViolations(): Violation[] {
     const result = this.analysisResult();
     if (!result || !result.violations) {
-      return {};
+      return [];
     }
 
-    return result.violations.reduce((acc, violation) => {
+    return result.violations.filter(v => {
+      const severityMatch = this.filterSeverity().includes(v.severity);
+      const sourceMatch = this.filterSource().length === 0 || 
+                         (v.source && this.filterSource().includes(v.source));
+      return severityMatch && sourceMatch;
+    });
+  }
+
+  getViolationsByCategory(): { [key: string]: Violation[] } {
+    const filtered = this.getFilteredViolations();
+
+    return filtered.reduce((acc, violation) => {
       if (!acc[violation.category]) {
         acc[violation.category] = [];
       }
@@ -203,6 +231,54 @@ export class ApiInspectorComponent implements OnInit {
 
   getCategoryKeys(): string[] {
     return Object.keys(this.getViolationsByCategory());
+  }
+
+  toggleSeverityFilter(severity: string): void {
+    const current = this.filterSeverity();
+    if (current.includes(severity)) {
+      this.filterSeverity.set(current.filter(s => s !== severity));
+    } else {
+      this.filterSeverity.set([...current, severity]);
+    }
+  }
+
+  toggleSourceFilter(source: string): void {
+    const current = this.filterSource();
+    if (current.includes(source)) {
+      this.filterSource.set(current.filter(s => s !== source));
+    } else {
+      this.filterSource.set([...current, source]);
+    }
+  }
+
+  openEndpointDetails(endpoint: string, serviceUrl: string): void {
+    if (!endpoint || endpoint === 'All endpoints' || endpoint.includes('endpoints')) {
+      return;
+    }
+
+    // Fetch and display OpenAPI spec
+    this.apiAnalysisService.getOpenApiSpec(serviceUrl).subscribe({
+      next: (spec) => {
+        this.showOpenApiDialog(spec, endpoint);
+      },
+      error: (err) => {
+        this.snackBar.open('OpenAPI specification not available for this service', 'Close', {
+          duration: 3000
+        });
+      }
+    });
+  }
+
+  showOpenApiDialog(spec: any, endpoint: string): void {
+    const dialogRef = this.dialog.open(OpenApiDialogComponent, {
+      width: '90vw',
+      maxWidth: '1200px',
+      height: '80vh',
+      data: {
+        spec: spec,
+        highlightEndpoint: endpoint
+      }
+    });
   }
 
   getServiceIcon(serviceId: string): string {
