@@ -16,7 +16,10 @@
       <div class="selection-row">
         <mat-form-field class="service-select" appearance="outline">
           <mat-label>Select a Web Service</mat-label>
-          <mat-select [(ngModel)]="selectedService" [disabled]="isAnalyzing()">
+          <mat-select 
+            [(ngModel)]="selectedService" 
+            (ngModelChange)="onServiceSelectionChange()"
+            [disabled]="isAnalyzing()">
             <mat-option *ngFor="let service of services()" [value]="service.url">
               <div class="service-option">
                 <div class="service-name">{{ service.name }}</div>
@@ -25,7 +28,7 @@
             </mat-option>
           </mat-select>
           <mat-icon matPrefix>language</mat-icon>
-          <mat-hint>Choose a public API to analyze</mat-hint>
+          <mat-hint>Choose from 20 public APIs</mat-hint>
         </mat-form-field>
 
         <button
@@ -33,12 +36,33 @@
           color="primary"
           class="analyze-button"
           (click)="analyzeApi()"
-          [disabled]="!selectedService() || isAnalyzing()"
+          [disabled]="(!selectedService() && !customUrl()) || isAnalyzing()"
         >
           <mat-icon>analytics</mat-icon>
           <span *ngIf="!isAnalyzing()">Analyze API</span>
           <span *ngIf="isAnalyzing()">Analyzing...</span>
         </button>
+      </div>
+
+      <div class="divider-section">
+        <mat-divider></mat-divider>
+        <span class="divider-text">OR</span>
+        <mat-divider></mat-divider>
+      </div>
+
+      <div class="custom-url-row">
+        <mat-form-field class="custom-url-input" appearance="outline">
+          <mat-label>Enter Custom API URL</mat-label>
+          <input 
+            matInput 
+            type="url"
+            [(ngModel)]="customUrl"
+            (ngModelChange)="onCustomUrlChange()"
+            [disabled]="isAnalyzing()"
+            placeholder="https://api.example.com">
+          <mat-icon matPrefix>link</mat-icon>
+          <mat-hint>Paste your own API URL to analyze</mat-hint>
+        </mat-form-field>
       </div>
 
       <div *ngIf="isAnalyzing()" class="loading-container">

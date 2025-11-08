@@ -3,12 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiAnalysisService } from '../services/api-analysis.service';
@@ -23,12 +26,15 @@ import { WebService, ApiAnalysisResult, Violation } from '../models/web-service.
     FormsModule,
     MatCardModule,
     MatSelectModule,
+    MatInputModule,
+    MatFormFieldModule,
     MatButtonModule,
     MatProgressSpinnerModule,
     MatIconModule,
     MatChipsModule,
     MatExpansionModule,
     MatTooltipModule,
+    MatDividerModule,
     MatSnackBarModule
   ],
   templateUrl: './api-inspector.component.html',
@@ -37,6 +43,8 @@ import { WebService, ApiAnalysisResult, Violation } from '../models/web-service.
 export class ApiInspectorComponent implements OnInit {
   services = signal<WebService[]>([]);
   selectedService = signal<string>('');
+  customUrl = signal<string>('');
+  useCustomUrl = signal<boolean>(false);
   isAnalyzing = signal<boolean>(false);
   analysisResult = signal<ApiAnalysisResult | null>(null);
   error = signal<string>('');
@@ -63,11 +71,38 @@ export class ApiInspectorComponent implements OnInit {
     });
   }
 
+  onServiceSelectionChange(): void {
+    if (this.selectedService()) {
+      this.useCustomUrl.set(false);
+      this.customUrl.set('');
+    }
+  }
+
+  onCustomUrlChange(): void {
+    if (this.customUrl()) {
+      this.useCustomUrl.set(true);
+      this.selectedService.set('');
+    } else {
+      this.useCustomUrl.set(false);
+    }
+  }
+
   analyzeApi(): void {
-    const selectedUrl = this.selectedService();
-    if (!selectedUrl) {
-      this.snackBar.open('Please select a service to analyze', 'Close', {
+    const urlToAnalyze = this.useCustomUrl() ? this.customUrl() : this.selectedService();
+    
+    if (!urlToAnalyze) {
+      this.snackBar.open('Please select a service or enter a custom URL', 'Close', {
         duration: 3000
+      });
+      return;
+    }
+
+    // Validate URL format
+    try {
+      new URL(urlToAnalyze);
+    } catch {
+      this.snackBar.open('Please enter a valid URL (e.g., https://api.example.com)', 'Close', {
+        duration: 4000
       });
       return;
     }
@@ -76,7 +111,7 @@ export class ApiInspectorComponent implements OnInit {
     this.error.set('');
     this.analysisResult.set(null);
 
-    this.apiAnalysisService.analyzeApi(selectedUrl).subscribe({
+    this.apiAnalysisService.analyzeApi(urlToAnalyze).subscribe({
       next: (result) => {
         this.analysisResult.set(result);
         this.isAnalyzing.set(false);

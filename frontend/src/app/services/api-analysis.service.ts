@@ -36,15 +36,99 @@ export class ApiAnalysisService {
     },
     {
       id: '5',
-      name: 'OpenWeather API',
-      url: 'https://api.openweathermap.org/data/2.5',
-      description: 'Weather data API providing current weather, forecasts, and historical data. (Note: May require API key)'
-    },
-    {
-      id: '6',
       name: 'REST Countries',
       url: 'https://restcountries.com/v3.1',
       description: 'Get information about countries via a RESTful API. Includes data about population, area, languages, and more.'
+    },
+    {
+      id: '6',
+      name: 'The Cat API',
+      url: 'https://api.thecatapi.com/v1',
+      description: 'Cat images and breed information API. Perfect for cat lovers and testing image-based APIs.'
+    },
+    {
+      id: '7',
+      name: 'Bored API',
+      url: 'https://www.boredapi.com/api',
+      description: 'Helps you find things to do when you\'re bored. Simple API with activity suggestions.'
+    },
+    {
+      id: '8',
+      name: 'GitHub API',
+      url: 'https://api.github.com',
+      description: 'Access GitHub data including repositories, users, issues, and more. Well-documented REST API.'
+    },
+    {
+      id: '9',
+      name: 'Open Library API',
+      url: 'https://openlibrary.org/api',
+      description: 'Access book data, covers, and bibliographic information from the Internet Archive.'
+    },
+    {
+      id: '10',
+      name: 'CoinGecko API',
+      url: 'https://api.coingecko.com/api/v3',
+      description: 'Cryptocurrency data API. Get prices, market data, and historical information.'
+    },
+    {
+      id: '11',
+      name: 'Random User API',
+      url: 'https://randomuser.me/api',
+      description: 'Generate random user data including names, emails, addresses, and profile pictures.'
+    },
+    {
+      id: '12',
+      name: 'Quote Garden API',
+      url: 'https://quote-garden.onrender.com/api/v3',
+      description: 'Collection of inspirational quotes. Simple API for retrieving random or specific quotes.'
+    },
+    {
+      id: '13',
+      name: 'PokéAPI',
+      url: 'https://pokeapi.co/api/v2',
+      description: 'Comprehensive Pokémon data API. Includes data on all Pokémon, moves, abilities, and more.'
+    },
+    {
+      id: '14',
+      name: 'Advice Slip API',
+      url: 'https://api.adviceslip.com',
+      description: 'Random advice generator API. Get random pieces of advice or search for specific topics.'
+    },
+    {
+      id: '15',
+      name: 'JSON Server API',
+      url: 'https://my-json-server.typicode.com/typicode/demo',
+      description: 'Fake Online REST server for testing and prototyping. Based on JSON Server.'
+    },
+    {
+      id: '16',
+      name: 'IP API',
+      url: 'https://ipapi.co/json',
+      description: 'IP geolocation API. Get location information based on IP address.'
+    },
+    {
+      id: '17',
+      name: 'Numbers API',
+      url: 'http://numbersapi.com',
+      description: 'Interesting facts about numbers. Get trivia, math facts, date facts, and more.'
+    },
+    {
+      id: '18',
+      name: 'Zippopotam.us',
+      url: 'http://api.zippopotam.us',
+      description: 'Postal and zip code information API. Get location data from postal codes.'
+    },
+    {
+      id: '19',
+      name: 'Agify.io',
+      url: 'https://api.agify.io',
+      description: 'Predict age based on a name. Simple API that estimates age from given names.'
+    },
+    {
+      id: '20',
+      name: 'Genderize.io',
+      url: 'https://api.genderize.io',
+      description: 'Predict gender based on a name. Determines likely gender from given names.'
     }
   ];
 

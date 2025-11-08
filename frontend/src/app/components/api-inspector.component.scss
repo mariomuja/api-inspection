@@ -63,6 +63,33 @@
       }
     }
 
+    .divider-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 24px 0;
+
+      mat-divider {
+        flex: 1;
+      }
+
+      .divider-text {
+        color: rgba(0, 0, 0, 0.6);
+        font-size: 14px;
+        font-weight: 500;
+        padding: 0 8px;
+      }
+    }
+
+    .custom-url-row {
+      display: flex;
+      gap: 16px;
+
+      .custom-url-input {
+        flex: 1;
+      }
+    }
+
     .loading-container {
       display: flex;
       flex-direction: column;
