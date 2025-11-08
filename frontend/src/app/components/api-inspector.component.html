@@ -48,9 +48,14 @@
       <div class="source-selection-row">
         <mat-form-field class="source-select" appearance="outline">
           <mat-label>Validation Source</mat-label>
-          <mat-select 
+          <mat-select
             [(ngModel)]="selectedSource"
             [disabled]="isAnalyzing()">
+            <mat-select-trigger>
+              <span class="selected-source-trigger">
+                {{ getSelectedSourceDisplay() }}
+              </span>
+            </mat-select-trigger>
             <mat-option *ngFor="let source of ruleSources()" [value]="source.id">
               <div class="source-option">
                 <div class="source-header">

@@ -202,13 +202,18 @@
       padding: 24px !important;
     }
 
-    .source-selection-row {
-      margin-bottom: 20px;
+      .source-selection-row {
+        margin-bottom: 20px;
 
-      .source-select {
-        width: 100%;
+        .source-select {
+          width: 100%;
+
+          .selected-source-trigger {
+            font-weight: 500;
+            color: #333;
+          }
+        }
       }
-    }
 
     .selection-row {
       display: flex;

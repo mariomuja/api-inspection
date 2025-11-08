@@ -421,5 +421,13 @@ export class ApiInspectorComponent implements OnInit {
     };
     return iconMap[serviceId] || 'api';
   }
+
+  getSelectedSourceDisplay(): string {
+    const source = this.ruleSources().find(s => s.id === this.selectedSource());
+    if (!source) return 'Select validation source...';
+    
+    // Format: "Name - Organization"
+    return `${source.name} - ${source.organization}`;
+  }
 }
 
