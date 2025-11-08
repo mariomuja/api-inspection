@@ -1,27 +1,29 @@
 <div class="inspector-container">
   <mat-card class="header-card">
-    <mat-card-header>
-      <mat-card-title>
-        <mat-icon>settings</mat-icon>
-        API Design Inspector
-        <button mat-icon-button (click)="openAboutDialog()" class="help-icon-btn" matTooltip="What is this app? Learn about features and benefits">
-          <mat-icon>help</mat-icon>
-        </button>
-      </mat-card-title>
-      <mat-card-subtitle>
-        Analyze public web service APIs against industry best practices and design guidelines
-      </mat-card-subtitle>
-    </mat-card-header>
-    <div class="header-content-row">
-      <div class="header-buttons">
-        <button mat-stroked-button (click)="openCustomRulesDialog()" class="header-action-btn">
-          <mat-icon>rule_settings</mat-icon>
-          Custom Rules
-        </button>
-        <button mat-stroked-button (click)="openAuthDialog()" class="header-action-btn">
-          <mat-icon>vpn_key</mat-icon>
-          Authentication
-        </button>
+    <div class="header-main-row">
+      <div class="header-left-section">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>settings</mat-icon>
+            API Design Inspector
+            <button mat-icon-button (click)="openAboutDialog()" class="help-icon-btn" matTooltip="What is this app? Learn about features and benefits">
+              <mat-icon>help</mat-icon>
+            </button>
+          </mat-card-title>
+          <mat-card-subtitle>
+            Analyze public web service APIs against industry best practices and design guidelines
+          </mat-card-subtitle>
+        </mat-card-header>
+        <div class="header-buttons">
+          <button mat-stroked-button (click)="openCustomRulesDialog()" class="header-action-btn">
+            <mat-icon>rule_settings</mat-icon>
+            Custom Rules
+          </button>
+          <button mat-stroked-button (click)="openAuthDialog()" class="header-action-btn">
+            <mat-icon>vpn_key</mat-icon>
+            Authentication
+          </button>
+        </div>
       </div>
       <div class="profile-card">
         <div class="profile-content">

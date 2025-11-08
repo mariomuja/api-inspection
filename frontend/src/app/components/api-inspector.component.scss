@@ -9,9 +9,23 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+    padding: 24px;
+
+    .header-main-row {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .header-left-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
 
     mat-card-header {
-      padding: 24px;
+      padding: 0;
     }
 
     mat-card-title {
@@ -31,7 +45,7 @@
       }
 
       .help-icon-btn {
-        margin-left: auto;
+        margin-left: 12px;
         background-color: #ffd700;
         color: #333;
         transition: all 0.3s ease;
@@ -62,27 +76,17 @@
     }
 
     mat-card-subtitle {
-      margin-top: 12px;
-      font-size: 16px;
+      margin-top: 8px;
+      font-size: 15px;
       color: rgba(255, 255, 255, 0.9) !important;
       line-height: 1.5;
-    }
-
-    .header-content-row {
-      padding: 0 24px 0 24px;
-      display: flex;
-      gap: 8px;
-      align-items: stretch;
-      justify-content: space-between;
-      min-height: 60px;
+      max-width: 650px;
     }
 
     .header-buttons {
       display: flex;
       gap: 12px;
       flex-shrink: 0;
-      align-items: flex-end;
-      padding-bottom: 20px;
 
       .header-action-btn {
         color: white;
@@ -101,17 +105,14 @@
     }
 
     .profile-card {
-      flex: 0 1 auto;
-      max-width: 420px;
-      min-width: 340px;
+      flex: 0 0 auto;
+      width: 420px;
       background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(10px);
       border-radius: 12px;
-      padding: 14px 18px;
-      margin-bottom: 20px;
+      padding: 16px 20px;
       border: 1px solid rgba(255, 255, 255, 0.2);
       transition: all 0.3s ease;
-      align-self: flex-start;
 
       &:hover {
         background: rgba(255, 255, 255, 0.2);
@@ -179,15 +180,15 @@
     }
   }
 
-  @media (max-width: 1024px) {
+  @media (max-width: 1200px) {
     .header-card {
-      .header-content-row {
+      .header-main-row {
         flex-direction: column;
         gap: 16px;
       }
 
       .profile-card {
-        max-width: 100%;
+        width: 100%;
       }
     }
   }
