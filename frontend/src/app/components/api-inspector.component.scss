@@ -68,10 +68,18 @@
       line-height: 1.5;
     }
 
-    .header-buttons {
+    .header-content-row {
       padding: 0 24px 20px 24px;
       display: flex;
+      gap: 24px;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .header-buttons {
+      display: flex;
       gap: 12px;
+      flex-shrink: 0;
 
       .header-action-btn {
         color: white;
@@ -86,6 +94,94 @@
         mat-icon {
           margin-right: 8px;
         }
+      }
+    }
+
+    .profile-card {
+      flex: 1;
+      max-width: 500px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 16px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .profile-content {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .profile-text {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.6;
+        color: white;
+
+        strong {
+          font-weight: 600;
+        }
+
+        a {
+          color: #ffd700;
+          text-decoration: none;
+          font-weight: 500;
+          transition: all 0.2s ease;
+
+          &:hover {
+            color: #ffed4e;
+            text-decoration: underline;
+          }
+        }
+      }
+
+      .github-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        align-self: flex-start;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.3);
+          transform: translateX(4px);
+          border-color: rgba(255, 255, 255, 0.5);
+        }
+      }
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .header-card {
+      .header-content-row {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .profile-card {
+        max-width: 100%;
       }
     }
   }

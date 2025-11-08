@@ -12,15 +12,32 @@
         Analyze public web service APIs against industry best practices and design guidelines
       </mat-card-subtitle>
     </mat-card-header>
-    <div class="header-buttons">
-      <button mat-stroked-button (click)="openCustomRulesDialog()" class="header-action-btn">
-        <mat-icon>rule_settings</mat-icon>
-        Custom Rules
-      </button>
-      <button mat-stroked-button (click)="openAuthDialog()" class="header-action-btn">
-        <mat-icon>vpn_key</mat-icon>
-        Authentication
-      </button>
+    <div class="header-content-row">
+      <div class="header-buttons">
+        <button mat-stroked-button (click)="openCustomRulesDialog()" class="header-action-btn">
+          <mat-icon>rule_settings</mat-icon>
+          Custom Rules
+        </button>
+        <button mat-stroked-button (click)="openAuthDialog()" class="header-action-btn">
+          <mat-icon>vpn_key</mat-icon>
+          Authentication
+        </button>
+      </div>
+      <div class="profile-card">
+        <div class="profile-content">
+          <p class="profile-text">
+            Hi, I am <strong>Mario Muja</strong>. I live in Hamburg. This is an application that I have created in my spare free time. 
+            If you need support with Angular/TypeScript development or with this app, then you can contact me on my German phone number 
+            <a href="tel:+4915204641473">+49 1520 464 1473</a> or at 
+            <a href="mailto:mario.muja@gmail.com">mario.muja@gmail.com</a>. 
+            I am looking forward to hearing from you! Have a nice day.
+          </p>
+          <a href="https://github.com/mariomuja/api-inspection" target="_blank" rel="noopener noreferrer" class="github-link">
+            <mat-icon>code</mat-icon>
+            <span>View on GitHub</span>
+          </a>
+        </div>
+      </div>
     </div>
   </mat-card>
 
