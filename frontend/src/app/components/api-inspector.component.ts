@@ -199,5 +199,31 @@ export class ApiInspectorComponent implements OnInit {
   getCategoryKeys(): string[] {
     return Object.keys(this.getViolationsByCategory());
   }
+
+  getServiceIcon(serviceId: string): string {
+    const iconMap: { [key: string]: string } = {
+      '1': 'description',        // JSONPlaceholder
+      '2': 'science',            // REQ|RES
+      '3': 'pets',               // Dog API
+      '4': 'shopping_cart',      // Fake Store API
+      '5': 'public',             // REST Countries
+      '6': 'sentiment_satisfied',// The Cat API
+      '7': 'sports_esports',     // Bored API
+      '8': 'code',               // GitHub API
+      '9': 'menu_book',          // Open Library API
+      '10': 'currency_bitcoin',  // CoinGecko API
+      '11': 'person',            // Random User API
+      '12': 'format_quote',      // Quote Garden API
+      '13': 'catching_pokemon',  // PokéAPI
+      '14': 'tips_and_updates',  // Advice Slip API
+      '15': 'storage',           // JSON Server API
+      '16': 'router',            // IP API
+      '17': 'tag',               // Numbers API
+      '18': 'location_on',       // Zippopotam.us
+      '19': 'cake',              // Agify.io
+      '20': 'wc'                 // Genderize.io
+    };
+    return iconMap[serviceId] || 'api';
+  }
 }
 

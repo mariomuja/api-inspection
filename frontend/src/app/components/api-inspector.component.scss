@@ -54,21 +54,6 @@
 
       .service-select {
         flex: 1;
-
-        .service-option {
-          padding: 8px 0;
-
-          .service-name {
-            font-weight: 500;
-            margin-bottom: 4px;
-          }
-
-          .service-description {
-            font-size: 12px;
-            color: rgba(0, 0, 0, 0.6);
-            white-space: normal;
-          }
-        }
       }
 
       .analyze-button {

@@ -19,10 +19,15 @@
           <mat-select 
             [(ngModel)]="selectedService" 
             (ngModelChange)="onServiceSelectionChange()"
-            [disabled]="isAnalyzing()">
-            <mat-option *ngFor="let service of services()" [value]="service.url">
+            [disabled]="isAnalyzing()"
+            panelClass="service-select-panel">
+            <mat-option *ngFor="let service of services()" [value]="service.url" class="service-option-item">
               <div class="service-option">
-                <div class="service-name">{{ service.name }}</div>
+                <div class="service-header">
+                  <span class="service-name">{{ service.name }}</span>
+                  <mat-icon class="service-icon">{{ getServiceIcon(service.id) }}</mat-icon>
+                </div>
+                <div class="service-url">{{ service.url }}</div>
                 <div class="service-description">{{ service.description }}</div>
               </div>
             </mat-option>
