@@ -218,7 +218,7 @@
     .selection-row {
       display: flex;
       gap: 16px;
-      align-items: flex-end;
+      align-items: flex-start;
 
       .service-select {
         flex: 1;
@@ -234,7 +234,8 @@
       .analyze-button {
         height: 56px;
         padding: 0 24px;
-        margin-bottom: 0;
+        margin-top: 18px;
+        flex-shrink: 0;
 
         mat-icon {
           margin-right: 8px;
