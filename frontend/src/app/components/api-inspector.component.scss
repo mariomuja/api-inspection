@@ -54,6 +54,13 @@
 
       .service-select {
         flex: 1;
+
+        .selected-url {
+          font-family: 'Courier New', monospace;
+          color: #667eea;
+          font-size: 14px;
+          font-weight: 500;
+        }
       }
 
       .analyze-button {

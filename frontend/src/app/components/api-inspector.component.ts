@@ -221,7 +221,27 @@ export class ApiInspectorComponent implements OnInit {
       '17': 'tag',               // Numbers API
       '18': 'location_on',       // Zippopotam.us
       '19': 'cake',              // Agify.io
-      '20': 'wc'                 // Genderize.io
+      '20': 'wc',                // Genderize.io
+      '21': 'flag',              // Nationalize.io
+      '22': 'cloud',             // JSONServe
+      '23': 'shuffle',           // Random Data API
+      '24': 'data_object',       // DummyJSON
+      '25': 'show_chart',        // CoinCap API
+      '26': 'language',          // REST Countries v2
+      '27': 'star',              // Star Wars API
+      '28': 'science_fiction',   // Rick and Morty API
+      '29': 'sports_martial_arts', // Chuck Norris API
+      '30': 'local_pharmacy',    // Breaking Bad API
+      '31': 'castle',            // Game of Thrones API
+      '32': 'animation',         // Studio Ghibli API
+      '33': 'superhero',         // Marvel API
+      '34': 'quiz',              // Open Trivia DB
+      '35': 'sentiment_very_satisfied', // Jokes API
+      '36': 'pets',              // Cat Facts API
+      '37': 'pets',              // Dog Facts API
+      '38': 'format_quote',      // Quotes API
+      '39': 'mic',               // Kanye Rest
+      '40': 'face'               // Ron Swanson Quotes
     };
     return iconMap[serviceId] || 'api';
   }

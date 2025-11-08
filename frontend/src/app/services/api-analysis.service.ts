@@ -129,6 +129,126 @@ export class ApiAnalysisService {
       name: 'Genderize.io',
       url: 'https://api.genderize.io',
       description: 'Predict gender based on a name. Determines likely gender from given names.'
+    },
+    {
+      id: '21',
+      name: 'Nationalize.io',
+      url: 'https://api.nationalize.io',
+      description: 'Predict nationality based on a name. Determines likely country of origin from given names.'
+    },
+    {
+      id: '22',
+      name: 'JSONServe',
+      url: 'https://jsonserve.com/api/v1',
+      description: 'Free fake REST API for prototyping and testing. No registration required.'
+    },
+    {
+      id: '23',
+      name: 'Random Data API',
+      url: 'https://random-data-api.com/api',
+      description: 'Generate random realistic data for testing. Includes users, addresses, and more.'
+    },
+    {
+      id: '24',
+      name: 'DummyJSON',
+      url: 'https://dummyjson.com',
+      description: 'Free fake REST API with realistic data for testing and prototyping.'
+    },
+    {
+      id: '25',
+      name: 'CoinCap API',
+      url: 'https://api.coincap.io/v2',
+      description: 'Real-time cryptocurrency pricing data and market information.'
+    },
+    {
+      id: '26',
+      name: 'REST Countries v2',
+      url: 'https://restcountries.com/v2',
+      description: 'Alternative version of REST Countries API with different response structure.'
+    },
+    {
+      id: '27',
+      name: 'Star Wars API (SWAPI)',
+      url: 'https://swapi.dev/api',
+      description: 'The Star Wars API. All the Star Wars data you need: films, people, planets, starships.'
+    },
+    {
+      id: '28',
+      name: 'Rick and Morty API',
+      url: 'https://rickandmortyapi.com/api',
+      description: 'RESTful API based on the Rick and Morty television show. Characters, episodes, locations.'
+    },
+    {
+      id: '29',
+      name: 'Chuck Norris API',
+      url: 'https://api.chucknorris.io',
+      description: 'Free JSON API for hand curated Chuck Norris facts. No authentication required.'
+    },
+    {
+      id: '30',
+      name: 'Breaking Bad API',
+      url: 'https://breakingbadapi.com/api',
+      description: 'Information about Breaking Bad characters, episodes, quotes, and deaths.'
+    },
+    {
+      id: '31',
+      name: 'Game of Thrones API',
+      url: 'https://anapioficeandfire.com/api',
+      description: 'An API of Ice And Fire. All the data from the universe of Ice and Fire.'
+    },
+    {
+      id: '32',
+      name: 'Studio Ghibli API',
+      url: 'https://ghibliapi.herokuapp.com',
+      description: 'Studio Ghibli API catalogs films, characters, locations, and species from their films.'
+    },
+    {
+      id: '33',
+      name: 'Marvel API',
+      url: 'https://gateway.marvel.com/v1/public',
+      description: 'Marvel Comics API. Access data about Marvel characters, comics, and creators. (Requires API key)'
+    },
+    {
+      id: '34',
+      name: 'Open Trivia DB',
+      url: 'https://opentdb.com/api.php',
+      description: 'Free trivia questions database API. Get random trivia questions for games and quizzes.'
+    },
+    {
+      id: '35',
+      name: 'Jokes API',
+      url: 'https://v2.jokeapi.dev',
+      description: 'REST API for serving uniformly and well formatted jokes. Multiple categories available.'
+    },
+    {
+      id: '36',
+      name: 'Cat Facts API',
+      url: 'https://catfact.ninja',
+      description: 'Daily cat facts! Get random or specific cat facts from the database.'
+    },
+    {
+      id: '37',
+      name: 'Dog Facts API',
+      url: 'https://dog-api.kinduff.com/api/facts',
+      description: 'Random dog facts API. Learn interesting facts about dogs.'
+    },
+    {
+      id: '38',
+      name: 'Quotes API',
+      url: 'https://api.quotable.io',
+      description: 'Random famous quotes API. Get inspirational and motivational quotes.'
+    },
+    {
+      id: '39',
+      name: 'Kanye Rest',
+      url: 'https://api.kanye.rest',
+      description: 'Random Kanye West quotes. Get a dose of Kanye wisdom with each request.'
+    },
+    {
+      id: '40',
+      name: 'Ron Swanson Quotes',
+      url: 'https://ron-swanson-quotes.herokuapp.com/v2/quotes',
+      description: 'Random Ron Swanson quotes from Parks and Recreation TV show.'
     }
   ];
 
