@@ -26,6 +26,7 @@ import { RuleSource, RULE_SOURCES } from '../models/rule-source.model';
 import { OpenApiDialogComponent } from './openapi-dialog.component';
 import { CustomRulesDialogComponent } from './custom-rules-dialog.component';
 import { AuthDialogComponent } from './auth-dialog.component';
+import { AboutDialogComponent } from './about-dialog.component';
 
 @Component({
   selector: 'app-api-inspector',
@@ -250,6 +251,13 @@ export class ApiInspectorComponent implements OnInit {
       if (authConfig) {
         this.snackBar.open('Authentication configured', 'Close', { duration: 3000 });
       }
+    });
+  }
+
+  openAboutDialog(): void {
+    this.dialog.open(AboutDialogComponent, {
+      width: '800px',
+      maxHeight: '90vh'
     });
   }
 
