@@ -252,19 +252,23 @@ export class ApiInspectorComponent implements OnInit {
   }
 
   openEndpointDetails(endpoint: string, serviceUrl: string): void {
-    if (!endpoint || endpoint === 'All endpoints' || endpoint.includes('endpoints')) {
-      return;
-    }
+    // Show loading message
+    const loadingSnack = this.snackBar.open('Generating API documentation...', '', {
+      duration: 0
+    });
 
-    // Fetch and display OpenAPI spec
+    // Fetch and display OpenAPI spec (will be generated if not available)
     this.apiAnalysisService.getOpenApiSpec(serviceUrl).subscribe({
       next: (spec) => {
+        loadingSnack.dismiss();
         this.showOpenApiDialog(spec, endpoint);
       },
       error: (err) => {
-        this.snackBar.open('OpenAPI specification not available for this service', 'Close', {
+        loadingSnack.dismiss();
+        this.snackBar.open('Failed to load API documentation', 'Close', {
           duration: 3000
         });
+        console.error('OpenAPI spec error:', err);
       }
     });
   }

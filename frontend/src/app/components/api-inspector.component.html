@@ -243,6 +243,17 @@
                     <span *ngFor="let example of violation.examples" class="example-badge">{{ example }}</span>
                   </div>
                 </div>
+
+                <div class="violation-footer">
+                  <button 
+                    mat-stroked-button 
+                    color="primary" 
+                    class="view-api-button"
+                    (click)="openEndpointDetails(violation.endpoint || '/', result.serviceUrl)">
+                    <mat-icon>description</mat-icon>
+                    View API Documentation
+                  </button>
+                </div>
               </div>
             </div>
           </mat-expansion-panel>

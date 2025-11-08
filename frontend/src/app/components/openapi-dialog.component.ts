@@ -87,6 +87,24 @@ import { MatTabsModule } from '@angular/material/tabs';
           </div>
         </mat-tab>
 
+        <mat-tab label="All Endpoints">
+          <div class="tab-content">
+            <div class="all-endpoints" *ngIf="spec()?.paths">
+              <div *ngFor="let pathKey of getPathKeys()" class="endpoint-item">
+                <h4>{{ pathKey }}</h4>
+                <div *ngFor="let method of getAllPathMethods(pathKey)" class="method-section">
+                  <div class="method-header">
+                    <span [class]="'method-badge method-' + method.toLowerCase()">
+                      {{ method.toUpperCase() }}
+                    </span>
+                    <span class="summary">{{ getPathMethodSummary(pathKey, method) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
         <mat-tab label="Full Specification">
           <div class="tab-content">
             <pre class="spec-json">{{ formatSpec() }}</pre>
@@ -157,6 +175,34 @@ import { MatTabsModule } from '@angular/material/tabs';
 
     .tab-content {
       padding: 20px 0;
+    }
+
+    .all-endpoints {
+      .endpoint-item {
+        margin-bottom: 24px;
+        padding: 16px;
+        background-color: #fafafa;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+
+        h4 {
+          color: #667eea;
+          font-size: 18px;
+          font-family: 'Courier New', monospace;
+          margin: 0 0 12px 0;
+        }
+
+        .method-section {
+          margin-bottom: 8px;
+          padding: 8px;
+          background-color: white;
+          border-radius: 4px;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
+      }
     }
 
     .endpoint-highlight {
@@ -371,6 +417,26 @@ export class OpenApiDialogComponent implements OnInit {
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileDefaultName);
     linkElement.click();
+  }
+
+  getPathKeys(): string[] {
+    const spec = this.spec();
+    return spec?.paths ? Object.keys(spec.paths) : [];
+  }
+
+  getAllPathMethods(pathKey: string): string[] {
+    const spec = this.spec();
+    const path = spec?.paths?.[pathKey];
+    if (!path) return [];
+    return Object.keys(path).filter(k => 
+      ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'].includes(k.toLowerCase())
+    );
+  }
+
+  getPathMethodSummary(pathKey: string, method: string): string {
+    const spec = this.spec();
+    const path = spec?.paths?.[pathKey];
+    return path?.[method]?.summary || path?.[method]?.description || 'No description';
   }
 }
 
