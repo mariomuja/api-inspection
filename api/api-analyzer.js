@@ -90,19 +90,41 @@ class ApiAnalyzer {
 
   async discoverEndpoints() {
     // Try to fetch common endpoints to analyze
-    // In a real implementation, this would try to fetch OpenAPI spec or discover endpoints
-    const commonPaths = ['', '/users', '/posts', '/comments', '/todos', '/products'];
+    const commonPaths = ['', '/users', '/posts', '/comments', '/todos', '/products', '/items', '/data'];
     
     for (const path of commonPaths) {
       try {
         const url = `${this.serviceUrl}${path}`;
-        const response = await fetch(url, { method: 'HEAD' });
+        
+        // First try HEAD to get headers
+        const headResponse = await fetch(url, { method: 'HEAD' });
+        const headers = Object.fromEntries(headResponse.headers.entries());
+        
+        // Then try GET to get actual data for analysis
+        let responseData = null;
+        try {
+          const getResponse = await fetch(url, { 
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+          });
+          
+          if (getResponse.ok) {
+            const contentType = getResponse.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              responseData = await getResponse.json();
+            }
+          }
+        } catch (err) {
+          // GET might fail, that's okay
+        }
+        
         this.endpoints.push({
           path,
           url,
-          methods: this.extractAllowedMethods(response),
-          statusCode: response.status,
-          headers: Object.fromEntries(response.headers.entries())
+          methods: this.extractAllowedMethods(headResponse),
+          statusCode: headResponse.status,
+          headers: headers,
+          responseData: responseData
         });
       } catch (err) {
         // Endpoint might not exist, that's okay
@@ -310,80 +332,215 @@ class ApiAnalyzer {
   }
 
   analyzeDataTypes() {
-    // Add recommendations for data type consistency
     const dataTypeRule = this.filteredRules.find(r => r.id === 'datatypes-001');
     const dateRule = this.filteredRules.find(r => r.id === 'datatypes-002');
     const booleanRule = this.filteredRules.find(r => r.id === 'datatypes-005');
     const numericRule = this.filteredRules.find(r => r.id === 'datatypes-004');
+    const arrayRule = this.filteredRules.find(r => r.id === 'arrays-001');
 
-    if (dataTypeRule) {
-      this.addViolation({
-        rule: dataTypeRule,
-        details: 'Verify that data types are consistent across all endpoints (e.g., IDs always as strings, dates in ISO 8601).'
-      });
-    }
+    // Analyze actual response data
+    this.endpoints.forEach(endpoint => {
+      if (!endpoint.responseData) return;
 
-    if (dateRule) {
-      this.addViolation({
-        rule: dateRule,
-        details: 'Ensure all date/time fields use ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ) with timezone information.'
-      });
-    }
+      const data = endpoint.responseData;
+      const items = Array.isArray(data) ? data : [data];
+      
+      // Check first few items for data type issues
+      items.slice(0, 3).forEach((item, index) => {
+        if (!item || typeof item !== 'object') return;
 
-    if (booleanRule) {
-      this.addViolation({
-        rule: booleanRule,
-        details: 'Use actual boolean types (true/false) instead of strings ("true"/"false") or numbers (0/1).'
-      });
-    }
+        // Check for inconsistent ID types
+        if (item.id !== undefined && dataTypeRule) {
+          const idType = typeof item.id;
+          if (idType !== 'string' && idType !== 'number') {
+            this.addViolation({
+              rule: dataTypeRule,
+              endpoint: endpoint.path,
+              method: 'GET',
+              details: `Field "id" in ${endpoint.path} has inconsistent type: ${idType}. IDs should consistently be strings or numbers.`
+            });
+          }
+        }
 
-    if (numericRule) {
-      this.addViolation({
-        rule: numericRule,
-        details: 'Use appropriate numeric types: integers for counts/IDs, avoid floats for currency (use strings or integer cents).'
+        // Check for date format issues
+        if (dateRule) {
+          Object.keys(item).forEach(key => {
+            const value = item[key];
+            if (typeof value === 'string') {
+              // Check if it looks like a date but not ISO 8601
+              const datePatterns = [
+                /^\d{1,2}\/\d{1,2}\/\d{4}$/,  // 11/08/2025
+                /^\d{4}-\d{2}-\d{2}$/,         // 2025-11-08 (missing time)
+                /^\d{10,13}$/                  // Unix timestamp only
+              ];
+              
+              const looksLikeDate = key.toLowerCase().includes('date') || 
+                                   key.toLowerCase().includes('time') ||
+                                   key.toLowerCase().includes('created') ||
+                                   key.toLowerCase().includes('updated');
+              
+              if (looksLikeDate && datePatterns.some(pattern => pattern.test(value))) {
+                this.addViolation({
+                  rule: dateRule,
+                  endpoint: endpoint.path,
+                  method: 'GET',
+                  details: `Field "${key}" in ${endpoint.path} uses non-ISO 8601 format: "${value}". Use ISO 8601: "YYYY-MM-DDTHH:mm:ssZ".`
+                });
+              }
+            }
+          });
+        }
+
+        // Check for string booleans
+        if (booleanRule) {
+          Object.keys(item).forEach(key => {
+            const value = item[key];
+            const looksLikeBoolean = key.toLowerCase().includes('is') || 
+                                    key.toLowerCase().includes('has') ||
+                                    key.toLowerCase().includes('can') ||
+                                    key.toLowerCase().includes('enabled') ||
+                                    key.toLowerCase().includes('active');
+            
+            if (looksLikeBoolean && typeof value === 'string' && (value === 'true' || value === 'false' || value === 'yes' || value === 'no')) {
+              this.addViolation({
+                rule: booleanRule,
+                endpoint: endpoint.path,
+                method: 'GET',
+                details: `Field "${key}" in ${endpoint.path} uses string boolean: "${value}". Use actual boolean type: true or false.`
+              });
+            }
+            
+            if (looksLikeBoolean && typeof value === 'number' && (value === 0 || value === 1)) {
+              this.addViolation({
+                rule: booleanRule,
+                endpoint: endpoint.path,
+                method: 'GET',
+                details: `Field "${key}" in ${endpoint.path} uses numeric boolean: ${value}. Use actual boolean type: true or false.`
+              });
+            }
+          });
+        }
+
+        // Check for currency fields using floats
+        if (numericRule) {
+          Object.keys(item).forEach(key => {
+            const value = item[key];
+            const looksLikeCurrency = key.toLowerCase().includes('price') || 
+                                     key.toLowerCase().includes('amount') ||
+                                     key.toLowerCase().includes('cost') ||
+                                     key.toLowerCase().includes('fee');
+            
+            if (looksLikeCurrency && typeof value === 'number' && !Number.isInteger(value)) {
+              this.addViolation({
+                rule: numericRule,
+                endpoint: endpoint.path,
+                method: 'GET',
+                details: `Field "${key}" in ${endpoint.path} uses floating point for currency: ${value}. Use string or integer cents to avoid precision errors.`
+              });
+            }
+          });
+        }
       });
-    }
+
+      // Check if endpoint returns array for collections
+      if (arrayRule && endpoint.path && endpoint.path !== '') {
+        const pathSegments = endpoint.path.split('/').filter(Boolean);
+        const lastSegment = pathSegments[pathSegments.length - 1];
+        
+        // If path looks like a collection but returns single object
+        if (lastSegment && lastSegment.match(/s$|ies$/) && !Array.isArray(data) && data !== null) {
+          this.addViolation({
+            rule: arrayRule,
+            endpoint: endpoint.path,
+            method: 'GET',
+            details: `Endpoint ${endpoint.path} appears to be a collection but returns a single object instead of an array.`
+          });
+        }
+      }
+    });
   }
 
   analyzeValidation() {
     const inputValidationRule = this.filteredRules.find(r => r.id === 'validation-001');
     const validationErrorRule = this.filteredRules.find(r => r.id === 'validation-002');
-    const arrayLimitRule = this.filteredRules.find(r => r.id === 'arrays-002');
     const stringLimitRule = this.filteredRules.find(r => r.id === 'strings-001');
     const formatRule = this.filteredRules.find(r => r.id === 'strings-002');
 
-    if (inputValidationRule) {
+    // Check actual response data for validation issues
+    this.endpoints.forEach(endpoint => {
+      if (!endpoint.responseData) return;
+
+      const data = endpoint.responseData;
+      const items = Array.isArray(data) ? data : [data];
+      
+      items.slice(0, 3).forEach((item, index) => {
+        if (!item || typeof item !== 'object') return;
+
+        // Check for email format
+        if (formatRule) {
+          Object.keys(item).forEach(key => {
+            const value = item[key];
+            if (key.toLowerCase().includes('email') && typeof value === 'string') {
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (!emailRegex.test(value)) {
+                this.addViolation({
+                  rule: formatRule,
+                  endpoint: endpoint.path,
+                  method: 'GET',
+                  details: `Field "${key}" in ${endpoint.path} has invalid email format: "${value}". Should match email pattern.`
+                });
+              }
+            }
+
+            // Check for URL format
+            if ((key.toLowerCase().includes('url') || key.toLowerCase().includes('website')) && typeof value === 'string') {
+              try {
+                new URL(value);
+              } catch {
+                this.addViolation({
+                  rule: formatRule,
+                  endpoint: endpoint.path,
+                  method: 'GET',
+                  details: `Field "${key}" in ${endpoint.path} has invalid URL format: "${value}". Should be a valid URL.`
+                });
+              }
+            }
+          });
+        }
+
+        // Check for excessively long strings without limits
+        if (stringLimitRule) {
+          Object.keys(item).forEach(key => {
+            const value = item[key];
+            if (typeof value === 'string' && value.length > 10000) {
+              this.addViolation({
+                rule: stringLimitRule,
+                endpoint: endpoint.path,
+                method: 'GET',
+                details: `Field "${key}" in ${endpoint.path} contains very long string (${value.length} chars). Define maxLength constraints.`
+              });
+            }
+          });
+        }
+      });
+    });
+
+    // Add general recommendations if rules exist but no specific violations found
+    if (inputValidationRule && this.endpoints.length > 0) {
       this.addViolation({
         rule: inputValidationRule,
-        details: 'Implement comprehensive input validation: check required fields, data types, formats, ranges, and business rules.'
+        endpoint: 'All endpoints',
+        method: 'POST/PUT',
+        details: 'Ensure all POST/PUT endpoints implement input validation for required fields, data types, formats, and constraints.'
       });
     }
 
-    if (validationErrorRule) {
+    if (validationErrorRule && this.endpoints.length > 0) {
       this.addViolation({
         rule: validationErrorRule,
-        details: 'When validation fails, return specific field-level errors indicating which fields failed and why.'
-      });
-    }
-
-    if (arrayLimitRule) {
-      this.addViolation({
-        rule: arrayLimitRule,
-        details: 'Set maximum array sizes (e.g., maxItems: 1000) to prevent resource exhaustion attacks.'
-      });
-    }
-
-    if (stringLimitRule) {
-      this.addViolation({
-        rule: stringLimitRule,
-        details: 'Define minLength and maxLength constraints on all string fields to prevent buffer overflows.'
-      });
-    }
-
-    if (formatRule) {
-      this.addViolation({
-        rule: formatRule,
-        details: 'Use format constraints (email, uri, uuid, date-time) for structured strings to ensure data quality.'
+        endpoint: 'All endpoints',
+        method: 'POST/PUT',
+        details: 'When validation fails, return structured error responses with field-level details: { errors: [{ field: "email", message: "Invalid format" }] }.'
       });
     }
   }
@@ -395,99 +552,198 @@ class ApiAnalyzer {
     const responseRule = this.filteredRules.find(r => r.id === 'response-003');
     const hateoasRule = this.filteredRules.find(r => r.id === 'response-004');
 
+    // Check for bulk operation support
     if (bulkOpsRule) {
-      this.addViolation({
-        rule: bulkOpsRule,
-        details: 'Consider providing bulk operation endpoints (e.g., POST /users/bulk) for creating/updating multiple items efficiently.'
-      });
+      const hasBulkEndpoints = this.endpoints.some(e => e.path.includes('bulk') || e.path.includes('batch'));
+      if (!hasBulkEndpoints && this.endpoints.length > 2) {
+        const collectionEndpoints = this.endpoints.filter(e => e.path.match(/\/(users|posts|products|items)$/));
+        if (collectionEndpoints.length > 0) {
+          this.addViolation({
+            rule: bulkOpsRule,
+            endpoint: collectionEndpoints[0].path,
+            method: 'POST',
+            details: `No bulk operation endpoint found. Consider adding POST ${collectionEndpoints[0].path}/bulk for batch creates/updates.`
+          });
+        }
+      }
     }
 
+    // Check for PATCH support
     if (patchRule) {
-      this.addViolation({
-        rule: patchRule,
-        details: 'Support PATCH method for partial updates, allowing clients to update specific fields without sending the entire resource.'
+      const supportsPatch = this.endpoints.some(e => e.methods && e.methods.includes('PATCH'));
+      if (!supportsPatch && this.endpoints.length > 0) {
+        const resourceEndpoints = this.endpoints.filter(e => e.path.match(/\/\w+\/\d+$|\/\w+\/[a-z0-9-]+$/));
+        if (resourceEndpoints.length === 0 && this.endpoints.some(e => e.path)) {
+          this.addViolation({
+            rule: patchRule,
+            endpoint: 'Resource endpoints',
+            method: 'PATCH',
+            details: 'No PATCH method detected. Support PATCH for partial updates (e.g., PATCH /users/1 with only changed fields).'
+          });
+        }
+      }
+    }
+
+    // Check for HATEOAS links
+    if (hateoasRule) {
+      this.endpoints.forEach(endpoint => {
+        if (endpoint.responseData) {
+          const data = endpoint.responseData;
+          const items = Array.isArray(data) ? data.slice(0, 2) : [data];
+          
+          items.forEach(item => {
+            if (item && typeof item === 'object') {
+              const hasLinks = item._links || item.links || item.href || item.self;
+              if (!hasLinks) {
+                this.addViolation({
+                  rule: hateoasRule,
+                  endpoint: endpoint.path,
+                  method: 'GET',
+                  details: `Response in ${endpoint.path} lacks hypermedia links. Add _links field with self, related resources (e.g., { _links: { self: "${endpoint.path}/1", posts: "/users/1/posts" } }).`
+                });
+              }
+            }
+          });
+        }
       });
     }
 
-    if (asyncRule) {
+    // General operation recommendations
+    if (asyncRule && this.endpoints.length > 0) {
       this.addViolation({
         rule: asyncRule,
-        details: 'For long-running operations, return 202 Accepted with a status endpoint for clients to poll progress.'
+        endpoint: 'Long-running operations',
+        method: 'POST',
+        details: 'For operations taking >5 seconds, return 202 Accepted with Location header pointing to status endpoint (e.g., /operations/{id}).'
       });
     }
 
-    if (responseRule) {
+    if (responseRule && this.endpoints.length > 0) {
       this.addViolation({
         rule: responseRule,
-        details: 'Return appropriate responses: POST → 201 + Location, DELETE → 204, GET → 200 + resource, PUT → 200 + updated resource.'
-      });
-    }
-
-    if (hateoasRule) {
-      this.addViolation({
-        rule: hateoasRule,
-        details: 'Include hypermedia links (_links) in responses to related resources and available actions for better discoverability.'
+        endpoint: 'All endpoints',
+        method: 'ALL',
+        details: 'Verify response patterns: POST → 201 + Location header + created resource, PUT → 200 + updated resource, DELETE → 204 No Content, GET → 200 + resource(s).'
       });
     }
   }
 
   analyzeSchemas() {
     const schemaRule = this.filteredRules.find(r => r.id === 'datatypes-003');
-    const nullableRule = this.filteredRules.find(r => r.id === 'schema-001');
     const constraintsRule = this.filteredRules.find(r => r.id === 'schema-002');
     const enumRule = this.filteredRules.find(r => r.id === 'schema-003');
-    const arrayRule = this.filteredRules.find(r => r.id === 'arrays-001');
     const nullsRule = this.filteredRules.find(r => r.id === 'nulls-001');
     const objectsRule = this.filteredRules.find(r => r.id === 'objects-001');
 
-    if (schemaRule) {
+    // Check actual data for schema issues
+    this.endpoints.forEach(endpoint => {
+      if (!endpoint.responseData) return;
+
+      const data = endpoint.responseData;
+      const items = Array.isArray(data) ? data : [data];
+      
+      items.slice(0, 3).forEach((item, index) => {
+        if (!item || typeof item !== 'object') return;
+
+        // Check for enum candidates (fields with limited values)
+        if (enumRule) {
+          Object.keys(item).forEach(key => {
+            const value = item[key];
+            if (key.toLowerCase().includes('status') || 
+                key.toLowerCase().includes('type') || 
+                key.toLowerCase().includes('role') ||
+                key.toLowerCase().includes('state')) {
+              if (typeof value === 'string' && !value.match(/^[A-Z_]+$/)) {
+                this.addViolation({
+                  rule: enumRule,
+                  endpoint: endpoint.path,
+                  method: 'GET',
+                  details: `Field "${key}" in ${endpoint.path} with value "${value}" appears to be an enum candidate. Define allowed values in schema.`
+                });
+              }
+            }
+          });
+        }
+
+        // Check for null handling inconsistency
+        if (nullsRule) {
+          const nullFields = Object.keys(item).filter(key => item[key] === null);
+          if (nullFields.length > 0 && nullFields.length < Object.keys(item).length / 2) {
+            this.addViolation({
+              rule: nullsRule,
+              endpoint: endpoint.path,
+              method: 'GET',
+              details: `Response in ${endpoint.path} has inconsistent null handling. Fields with null: [${nullFields.join(', ')}]. Document whether to omit or include nulls.`
+            });
+          }
+        }
+
+        // Check nesting depth
+        if (objectsRule) {
+          const maxDepth = this.getMaxNestingDepth(item);
+          if (maxDepth > 4) {
+            this.addViolation({
+              rule: objectsRule,
+              endpoint: endpoint.path,
+              method: 'GET',
+              details: `Response in ${endpoint.path} has excessive nesting (${maxDepth} levels deep). Limit nesting to 3-4 levels for better usability.`
+            });
+          }
+        }
+
+        // Check for missing constraints
+        if (constraintsRule) {
+          Object.keys(item).forEach(key => {
+            const value = item[key];
+            
+            // Numeric fields without documented ranges
+            if (typeof value === 'number' && (key.toLowerCase().includes('age') || key.toLowerCase().includes('count') || key.toLowerCase().includes('quantity'))) {
+              this.addViolation({
+                rule: constraintsRule,
+                endpoint: endpoint.path,
+                method: 'GET',
+                details: `Field "${key}" in ${endpoint.path} is numeric (value: ${value}). Define min/max constraints in schema (e.g., min=0, max=120 for age).`
+              });
+            }
+
+            // String fields that should have length limits
+            if (typeof value === 'string' && value.length > 0 && (key.toLowerCase().includes('name') || key.toLowerCase().includes('title') || key.toLowerCase().includes('description'))) {
+              this.addViolation({
+                rule: constraintsRule,
+                endpoint: endpoint.path,
+                method: 'GET',
+                details: `Field "${key}" in ${endpoint.path} is a string (length: ${value.length}). Define minLength/maxLength in schema (e.g., minLength=1, maxLength=255).`
+              });
+            }
+          });
+        }
+      });
+    });
+
+    // General schema recommendation
+    if (schemaRule && this.endpoints.length > 0) {
       this.addViolation({
         rule: schemaRule,
-        details: 'Provide JSON Schema or OpenAPI schema definitions for all request/response bodies to enable validation and code generation.'
+        endpoint: 'All endpoints',
+        method: 'ALL',
+        details: 'Provide OpenAPI/Swagger specification with complete JSON Schema definitions for all request/response bodies.'
       });
+    }
+  }
+
+  getMaxNestingDepth(obj, currentDepth = 0) {
+    if (typeof obj !== 'object' || obj === null) {
+      return currentDepth;
     }
 
-    if (nullableRule) {
-      this.addViolation({
-        rule: nullableRule,
-        details: 'Clearly distinguish optional fields (can be omitted) from nullable fields (can be null) in your schema definitions.'
-      });
+    let maxDepth = currentDepth;
+    for (const key in obj) {
+      if (typeof obj[key] === 'object' && obj[key] !== null) {
+        const depth = this.getMaxNestingDepth(obj[key], currentDepth + 1);
+        maxDepth = Math.max(maxDepth, depth);
+      }
     }
-
-    if (constraintsRule) {
-      this.addViolation({
-        rule: constraintsRule,
-        details: 'Define min/max constraints: number ranges (min/max), string lengths (minLength/maxLength), array sizes (minItems/maxItems).'
-      });
-    }
-
-    if (enumRule) {
-      this.addViolation({
-        rule: enumRule,
-        details: 'Use enum types for fields with fixed value sets (e.g., status: ["active", "inactive"]) to enforce valid values.'
-      });
-    }
-
-    if (arrayRule) {
-      this.addViolation({
-        rule: arrayRule,
-        details: 'Collection endpoints must always return arrays, even for empty collections or single items, for type consistency.'
-      });
-    }
-
-    if (nullsRule) {
-      this.addViolation({
-        rule: nullsRule,
-        details: 'Establish and document a consistent null handling policy: either always omit null fields or always include them.'
-      });
-    }
-
-    if (objectsRule) {
-      this.addViolation({
-        rule: objectsRule,
-        details: 'Group related fields in nested objects logically, but limit nesting to 3-4 levels maximum for accessibility.'
-      });
-    }
+    return maxDepth;
   }
 
   analyzeParameters() {
@@ -497,44 +753,78 @@ class ApiAnalyzer {
     const compressionRule = this.filteredRules.find(r => r.id === 'performance-003');
     const sizeLimitRule = this.filteredRules.find(r => r.id === 'performance-006');
 
-    if (queryParamRule) {
+    // General parameter recommendations
+    if (queryParamRule && this.endpoints.length > 0) {
       this.addViolation({
         rule: queryParamRule,
-        details: 'Use query parameters for optional filters and options, not URL path segments or request body for GET requests.'
+        endpoint: 'GET endpoints',
+        method: 'GET',
+        details: 'Use query parameters for optional filters (e.g., /users?status=active&role=admin), not URL path segments or request body.'
       });
     }
 
-    if (paramDocRule) {
+    if (paramDocRule && this.endpoints.length > 0) {
       this.addViolation({
         rule: paramDocRule,
-        details: 'Document all parameter types, formats, constraints (min/max), and examples in OpenAPI specification or equivalent.'
+        endpoint: 'All endpoints',
+        method: 'ALL',
+        details: 'Document all parameters in OpenAPI spec with: type (string/integer/boolean), format (email/uuid), constraints (min/max), examples, and descriptions.'
       });
     }
 
-    if (defaultsRule) {
-      this.addViolation({
-        rule: defaultsRule,
-        details: 'Provide sensible default values for optional parameters (e.g., limit=20, sort=created_at:desc) and document them.'
-      });
+    if (defaultsRule && this.endpoints.length > 0) {
+      const collectionEndpoints = this.endpoints.filter(e => e.path.match(/\/(users|posts|products|items)$/));
+      if (collectionEndpoints.length > 0) {
+        this.addViolation({
+          rule: defaultsRule,
+          endpoint: collectionEndpoints[0].path,
+          method: 'GET',
+          details: `Collection endpoints like ${collectionEndpoints[0].path} should have default values: limit (default: 20), sort (default: created_at:desc), page (default: 1).`
+        });
+      }
     }
 
+    // Check for compression
     if (compressionRule) {
       const hasCompression = this.endpoints.some(e => 
         e.headers && (e.headers['content-encoding'] || e.headers['accept-encoding'])
       );
 
       if (!hasCompression && this.endpoints.length > 0) {
-        this.addViolation({
-          rule: compressionRule,
-          details: 'Enable gzip or brotli compression to reduce bandwidth usage. Add Content-Encoding headers to responses.'
-        });
+        const largeEndpoints = this.endpoints.filter(e => e.responseData && JSON.stringify(e.responseData).length > 1000);
+        if (largeEndpoints.length > 0) {
+          this.addViolation({
+            rule: compressionRule,
+            endpoint: largeEndpoints[0].path,
+            method: 'GET',
+            details: `Endpoint ${largeEndpoints[0].path} returns large responses without compression. Enable gzip/brotli to reduce bandwidth.`
+          });
+        }
       }
     }
 
-    if (sizeLimitRule) {
+    // Check response sizes
+    if (sizeLimitRule && this.endpoints.length > 0) {
+      this.endpoints.forEach(endpoint => {
+        if (endpoint.responseData) {
+          const size = JSON.stringify(endpoint.responseData).length;
+          if (size > 1024 * 1024) { // > 1MB
+            this.addViolation({
+              rule: sizeLimitRule,
+              endpoint: endpoint.path,
+              method: 'GET',
+              details: `Endpoint ${endpoint.path} returns very large response (${(size / 1024).toFixed(0)}KB). Implement pagination or field selection.`
+            });
+          }
+        }
+      });
+
+      // General recommendation
       this.addViolation({
         rule: sizeLimitRule,
-        details: 'Implement maximum payload size limits (e.g., 1MB for requests, 10MB for responses) and return 413 for oversized requests.'
+        endpoint: 'All endpoints',
+        method: 'POST/PUT',
+        details: 'Set maximum request payload sizes (e.g., 1MB) and return 413 Payload Too Large for oversized requests.'
       });
     }
   }
