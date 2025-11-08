@@ -155,6 +155,8 @@ import { MatTabsModule } from '@angular/material/tabs';
     mat-dialog-content {
       padding: 24px;
       min-height: 400px;
+      overflow-y: auto;
+      max-height: calc(80vh - 160px);
     }
 
     .spec-info {
@@ -175,6 +177,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 
     .tab-content {
       padding: 20px 0;
+      overflow: visible;
     }
 
     .all-endpoints {
@@ -297,11 +300,12 @@ import { MatTabsModule } from '@angular/material/tabs';
       color: #d4d4d4;
       padding: 20px;
       border-radius: 8px;
-      overflow: auto;
-      max-height: 60vh;
+      overflow: visible;
       font-family: 'Courier New', monospace;
       font-size: 13px;
       line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
     }
 
     .no-endpoint, .no-spec {
