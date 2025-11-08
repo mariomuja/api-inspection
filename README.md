@@ -14,44 +14,30 @@ A comprehensive API analysis tool that evaluates RESTful web services against 40
 ## 📸 Application Screenshots
 
 ### 🏠 Main Interface - API Analysis
-<img src="screenshots/main-interface.png" alt="Main Interface" width="700">
+![Main Interface](./screenshots/main-interface.png)
 
 *Select from 40 pre-configured public APIs or enter your own API URL for instant analysis*
 
 ---
 
 ### 📊 Analysis Results - Detailed Violations
-<img src="screenshots/analysis-results.png" alt="Analysis Results" width="700">
+![Analysis Results](./screenshots/analysis-results.png)
 
 *Comprehensive analysis with severity levels, authoritative sources, and actionable recommendations*
 
 ---
 
 ### 🔧 Custom Rules Builder
-<img src="screenshots/custom-rules.png" alt="Custom Rules" width="700">
+![Custom Rules](./screenshots/custom-rules.png)
 
 *Create, manage, and share custom API design rules tailored to your organization's standards*
 
 ---
 
 ### 🔐 Authentication Configuration
-<img src="screenshots/authentication.png" alt="Authentication" width="700">
+![Authentication](./screenshots/authentication.png)
 
 *Support for API Keys, Bearer Tokens, OAuth 2.0, and Basic Auth to analyze private APIs*
-
----
-
-### 📤 Multiple Export Formats
-<img src="screenshots/export-menu.png" alt="Export Menu" width="700">
-
-*Export results to PDF, Markdown, HTML, CSV, JSON, GitHub Issues, or JIRA format*
-
----
-
-### 📖 OpenAPI Specification Viewer
-<img src="screenshots/openapi-viewer.png" alt="OpenAPI Viewer" width="700">
-
-*Interactive OpenAPI documentation with endpoint highlighting and full specification display*
 
 ---
 
