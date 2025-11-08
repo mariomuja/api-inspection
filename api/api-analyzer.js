@@ -16,18 +16,25 @@ class ApiAnalyzer {
 
     // Define which rules belong to which source
     const sourceRuleMap = {
-      'google': ['rest-001', 'rest-004', 'error-001', 'naming-001'],
-      'microsoft': ['rest-002', 'pagination-001'],
-      'owasp': ['security-001', 'security-002', 'security-003'],
-      'ietf': ['http-001', 'http-003', 'idempotency-001', 'performance-002'],
-      'jsonapi': ['filtering-001', 'sorting-001', 'response-001', 'performance-001'],
-      'openapi': ['doc-001', 'doc-002'],
-      'w3c': ['http-002'],
+      'google': ['rest-001', 'rest-004', 'error-001', 'naming-001', 'datatypes-001', 'operations-001', 'objects-001', 'arrays-001', 'performance-003'],
+      'microsoft': ['rest-002', 'pagination-001', 'validation-002', 'response-003', 'operations-003'],
+      'owasp': ['security-001', 'security-002', 'security-003', 'validation-001', 'arrays-002', 'performance-006', 'strings-001'],
+      'ietf': ['http-001', 'http-003', 'idempotency-001', 'performance-002', 'performance-005', 'datatypes-005', 'nulls-001', 'operations-002'],
+      'jsonapi': ['filtering-001', 'sorting-001', 'response-001', 'performance-001', 'schema-002'],
+      'openapi': ['doc-001', 'doc-002', 'datatypes-003', 'parameters-002', 'schema-001', 'schema-003'],
+      'w3c': ['http-002', 'parameters-001'],
       'stripe': ['version-001'],
       'paypal': ['rest-005'],
       'github': ['pagination-002'],
       'aws': ['response-002'],
-      'atlassian': ['error-002']
+      'atlassian': ['error-002'],
+      'jsonschema': ['schema-002', 'strings-002'],
+      'iso': ['datatypes-002'],
+      'ieee': ['datatypes-004'],
+      'sre': ['performance-004'],
+      'database': ['performance-007'],
+      'hateoas': ['response-004'],
+      'designpatterns': ['parameters-003']
     };
 
     const ruleIds = sourceRuleMap[this.sourceFilter] || [];
@@ -49,6 +56,11 @@ class ApiAnalyzer {
       this.analyzeResponseDesign();
       this.analyzeNamingConventions();
       this.analyzePerformance();
+      this.analyzeDataTypes();
+      this.analyzeValidation();
+      this.analyzeOperations();
+      this.analyzeSchemas();
+      this.analyzeParameters();
 
       // Calculate overall score
       const overallScore = this.calculateScore();
@@ -293,6 +305,236 @@ class ApiAnalyzer {
       this.addViolation({
         rule: cachingRule,
         details: 'No caching headers detected. Implement Cache-Control and ETag headers for better performance.'
+      });
+    }
+  }
+
+  analyzeDataTypes() {
+    // Add recommendations for data type consistency
+    const dataTypeRule = this.filteredRules.find(r => r.id === 'datatypes-001');
+    const dateRule = this.filteredRules.find(r => r.id === 'datatypes-002');
+    const booleanRule = this.filteredRules.find(r => r.id === 'datatypes-005');
+    const numericRule = this.filteredRules.find(r => r.id === 'datatypes-004');
+
+    if (dataTypeRule) {
+      this.addViolation({
+        rule: dataTypeRule,
+        details: 'Verify that data types are consistent across all endpoints (e.g., IDs always as strings, dates in ISO 8601).'
+      });
+    }
+
+    if (dateRule) {
+      this.addViolation({
+        rule: dateRule,
+        details: 'Ensure all date/time fields use ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ) with timezone information.'
+      });
+    }
+
+    if (booleanRule) {
+      this.addViolation({
+        rule: booleanRule,
+        details: 'Use actual boolean types (true/false) instead of strings ("true"/"false") or numbers (0/1).'
+      });
+    }
+
+    if (numericRule) {
+      this.addViolation({
+        rule: numericRule,
+        details: 'Use appropriate numeric types: integers for counts/IDs, avoid floats for currency (use strings or integer cents).'
+      });
+    }
+  }
+
+  analyzeValidation() {
+    const inputValidationRule = this.filteredRules.find(r => r.id === 'validation-001');
+    const validationErrorRule = this.filteredRules.find(r => r.id === 'validation-002');
+    const arrayLimitRule = this.filteredRules.find(r => r.id === 'arrays-002');
+    const stringLimitRule = this.filteredRules.find(r => r.id === 'strings-001');
+    const formatRule = this.filteredRules.find(r => r.id === 'strings-002');
+
+    if (inputValidationRule) {
+      this.addViolation({
+        rule: inputValidationRule,
+        details: 'Implement comprehensive input validation: check required fields, data types, formats, ranges, and business rules.'
+      });
+    }
+
+    if (validationErrorRule) {
+      this.addViolation({
+        rule: validationErrorRule,
+        details: 'When validation fails, return specific field-level errors indicating which fields failed and why.'
+      });
+    }
+
+    if (arrayLimitRule) {
+      this.addViolation({
+        rule: arrayLimitRule,
+        details: 'Set maximum array sizes (e.g., maxItems: 1000) to prevent resource exhaustion attacks.'
+      });
+    }
+
+    if (stringLimitRule) {
+      this.addViolation({
+        rule: stringLimitRule,
+        details: 'Define minLength and maxLength constraints on all string fields to prevent buffer overflows.'
+      });
+    }
+
+    if (formatRule) {
+      this.addViolation({
+        rule: formatRule,
+        details: 'Use format constraints (email, uri, uuid, date-time) for structured strings to ensure data quality.'
+      });
+    }
+  }
+
+  analyzeOperations() {
+    const bulkOpsRule = this.filteredRules.find(r => r.id === 'operations-001');
+    const patchRule = this.filteredRules.find(r => r.id === 'operations-002');
+    const asyncRule = this.filteredRules.find(r => r.id === 'operations-003');
+    const responseRule = this.filteredRules.find(r => r.id === 'response-003');
+    const hateoasRule = this.filteredRules.find(r => r.id === 'response-004');
+
+    if (bulkOpsRule) {
+      this.addViolation({
+        rule: bulkOpsRule,
+        details: 'Consider providing bulk operation endpoints (e.g., POST /users/bulk) for creating/updating multiple items efficiently.'
+      });
+    }
+
+    if (patchRule) {
+      this.addViolation({
+        rule: patchRule,
+        details: 'Support PATCH method for partial updates, allowing clients to update specific fields without sending the entire resource.'
+      });
+    }
+
+    if (asyncRule) {
+      this.addViolation({
+        rule: asyncRule,
+        details: 'For long-running operations, return 202 Accepted with a status endpoint for clients to poll progress.'
+      });
+    }
+
+    if (responseRule) {
+      this.addViolation({
+        rule: responseRule,
+        details: 'Return appropriate responses: POST → 201 + Location, DELETE → 204, GET → 200 + resource, PUT → 200 + updated resource.'
+      });
+    }
+
+    if (hateoasRule) {
+      this.addViolation({
+        rule: hateoasRule,
+        details: 'Include hypermedia links (_links) in responses to related resources and available actions for better discoverability.'
+      });
+    }
+  }
+
+  analyzeSchemas() {
+    const schemaRule = this.filteredRules.find(r => r.id === 'datatypes-003');
+    const nullableRule = this.filteredRules.find(r => r.id === 'schema-001');
+    const constraintsRule = this.filteredRules.find(r => r.id === 'schema-002');
+    const enumRule = this.filteredRules.find(r => r.id === 'schema-003');
+    const arrayRule = this.filteredRules.find(r => r.id === 'arrays-001');
+    const nullsRule = this.filteredRules.find(r => r.id === 'nulls-001');
+    const objectsRule = this.filteredRules.find(r => r.id === 'objects-001');
+
+    if (schemaRule) {
+      this.addViolation({
+        rule: schemaRule,
+        details: 'Provide JSON Schema or OpenAPI schema definitions for all request/response bodies to enable validation and code generation.'
+      });
+    }
+
+    if (nullableRule) {
+      this.addViolation({
+        rule: nullableRule,
+        details: 'Clearly distinguish optional fields (can be omitted) from nullable fields (can be null) in your schema definitions.'
+      });
+    }
+
+    if (constraintsRule) {
+      this.addViolation({
+        rule: constraintsRule,
+        details: 'Define min/max constraints: number ranges (min/max), string lengths (minLength/maxLength), array sizes (minItems/maxItems).'
+      });
+    }
+
+    if (enumRule) {
+      this.addViolation({
+        rule: enumRule,
+        details: 'Use enum types for fields with fixed value sets (e.g., status: ["active", "inactive"]) to enforce valid values.'
+      });
+    }
+
+    if (arrayRule) {
+      this.addViolation({
+        rule: arrayRule,
+        details: 'Collection endpoints must always return arrays, even for empty collections or single items, for type consistency.'
+      });
+    }
+
+    if (nullsRule) {
+      this.addViolation({
+        rule: nullsRule,
+        details: 'Establish and document a consistent null handling policy: either always omit null fields or always include them.'
+      });
+    }
+
+    if (objectsRule) {
+      this.addViolation({
+        rule: objectsRule,
+        details: 'Group related fields in nested objects logically, but limit nesting to 3-4 levels maximum for accessibility.'
+      });
+    }
+  }
+
+  analyzeParameters() {
+    const queryParamRule = this.filteredRules.find(r => r.id === 'parameters-001');
+    const paramDocRule = this.filteredRules.find(r => r.id === 'parameters-002');
+    const defaultsRule = this.filteredRules.find(r => r.id === 'parameters-003');
+    const compressionRule = this.filteredRules.find(r => r.id === 'performance-003');
+    const sizeLimitRule = this.filteredRules.find(r => r.id === 'performance-006');
+
+    if (queryParamRule) {
+      this.addViolation({
+        rule: queryParamRule,
+        details: 'Use query parameters for optional filters and options, not URL path segments or request body for GET requests.'
+      });
+    }
+
+    if (paramDocRule) {
+      this.addViolation({
+        rule: paramDocRule,
+        details: 'Document all parameter types, formats, constraints (min/max), and examples in OpenAPI specification or equivalent.'
+      });
+    }
+
+    if (defaultsRule) {
+      this.addViolation({
+        rule: defaultsRule,
+        details: 'Provide sensible default values for optional parameters (e.g., limit=20, sort=created_at:desc) and document them.'
+      });
+    }
+
+    if (compressionRule) {
+      const hasCompression = this.endpoints.some(e => 
+        e.headers && (e.headers['content-encoding'] || e.headers['accept-encoding'])
+      );
+
+      if (!hasCompression && this.endpoints.length > 0) {
+        this.addViolation({
+          rule: compressionRule,
+          details: 'Enable gzip or brotli compression to reduce bandwidth usage. Add Content-Encoding headers to responses.'
+        });
+      }
+    }
+
+    if (sizeLimitRule) {
+      this.addViolation({
+        rule: sizeLimitRule,
+        details: 'Implement maximum payload size limits (e.g., 1MB for requests, 10MB for responses) and return 413 for oversized requests.'
       });
     }
   }

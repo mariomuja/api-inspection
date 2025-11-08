@@ -391,6 +391,441 @@ const designRules = [
       good: ['Cache-Control: max-age=3600', 'ETag: "abc123"', '304 Not Modified'],
       bad: ['No caching headers', 'Cache-Control: no-cache for everything']
     }
+  },
+  {
+    id: 'performance-003',
+    name: 'Use Compression for Responses',
+    category: 'Performance',
+    severity: 'warning',
+    description: 'Enable gzip or brotli compression to reduce response payload sizes.',
+    rationale: 'Compression significantly reduces bandwidth usage and improves load times, especially for large JSON responses.',
+    impact: 'Uncompressed responses waste bandwidth and slow down client applications.',
+    source: 'Google Web Fundamentals',
+    sourceUrl: 'https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/optimize-encoding-and-transfer',
+    examples: {
+      good: ['Content-Encoding: gzip', 'Content-Encoding: br', 'Accept-Encoding: gzip, deflate, br'],
+      bad: ['No compression', 'Large uncompressed JSON responses']
+    }
+  },
+  {
+    id: 'performance-004',
+    name: 'Implement Response Time SLA',
+    category: 'Performance',
+    severity: 'info',
+    description: 'Define and maintain response time service level agreements (e.g., p95 < 200ms).',
+    rationale: 'Consistent performance is crucial for user experience and system reliability.',
+    impact: 'Slow APIs lead to poor user experience and timeouts.',
+    source: 'Google Site Reliability Engineering',
+    sourceUrl: 'https://sre.google/sre-book/service-level-objectives/',
+    examples: {
+      good: ['p50 < 100ms', 'p95 < 200ms', 'p99 < 500ms'],
+      bad: ['No performance monitoring', 'Inconsistent response times']
+    }
+  },
+  {
+    id: 'performance-005',
+    name: 'Use Connection Pooling and Keep-Alive',
+    category: 'Performance',
+    severity: 'info',
+    description: 'Enable HTTP keep-alive to reuse connections and reduce latency.',
+    rationale: 'Connection reuse eliminates the overhead of establishing new TCP connections for each request.',
+    impact: 'Creating new connections for each request adds significant latency.',
+    source: 'HTTP/1.1 RFC 7230 (IETF)',
+    sourceUrl: 'https://tools.ietf.org/html/rfc7230#section-6.3',
+    examples: {
+      good: ['Connection: keep-alive', 'Keep-Alive: timeout=5, max=100'],
+      bad: ['Connection: close', 'No keep-alive support']
+    }
+  },
+  {
+    id: 'datatypes-001',
+    name: 'Use Consistent Data Types',
+    category: 'Data Types & Validation',
+    severity: 'error',
+    description: 'Use consistent data types across the API (e.g., IDs always as strings or numbers, dates in ISO 8601).',
+    rationale: 'Consistent data types prevent parsing errors and make the API predictable.',
+    impact: 'Inconsistent types require special handling and can cause runtime errors.',
+    source: 'Google Cloud API Design Guide',
+    sourceUrl: 'https://cloud.google.com/apis/design/design_patterns',
+    examples: {
+      good: ['id: "123" (always string)', 'timestamp: "2025-11-08T12:00:00Z" (ISO 8601)'],
+      bad: ['Sometimes id: 123, sometimes id: "123"', 'Mixed date formats']
+    }
+  },
+  {
+    id: 'datatypes-002',
+    name: 'Use ISO 8601 for Dates and Times',
+    category: 'Data Types & Validation',
+    severity: 'warning',
+    description: 'All date and time values should use ISO 8601 format with timezone information.',
+    rationale: 'ISO 8601 is the international standard and eliminates timezone ambiguity.',
+    impact: 'Custom date formats cause parsing issues and timezone confusion.',
+    source: 'ISO 8601 International Standard',
+    sourceUrl: 'https://www.iso.org/iso-8601-date-and-time-format.html',
+    examples: {
+      good: ['2025-11-08T21:30:00Z', '2025-11-08T21:30:00+01:00'],
+      bad: ['11/08/2025', '08-Nov-2025', '1699473000 (Unix timestamp only)']
+    }
+  },
+  {
+    id: 'datatypes-003',
+    name: 'Define Explicit Data Schemas',
+    category: 'Data Types & Validation',
+    severity: 'error',
+    description: 'Provide JSON Schema or OpenAPI schema definitions for all request and response bodies.',
+    rationale: 'Explicit schemas enable validation, documentation generation, and client code generation.',
+    impact: 'Without schemas, clients must guess data structures and types.',
+    source: 'OpenAPI Specification 3.0',
+    sourceUrl: 'https://spec.openapis.org/oas/v3.0.0#schema-object',
+    examples: {
+      good: ['JSON Schema definitions', 'OpenAPI schema components', 'Type definitions'],
+      bad: ['No schema documentation', 'Undocumented data structures']
+    }
+  },
+  {
+    id: 'datatypes-004',
+    name: 'Use Appropriate Numeric Types',
+    category: 'Data Types & Validation',
+    severity: 'warning',
+    description: 'Use proper numeric types: integers for counts, decimals for money, avoid floating point for currency.',
+    rationale: 'Correct numeric types prevent precision errors and overflow issues.',
+    impact: 'Wrong numeric types can cause calculation errors, especially with money.',
+    source: 'IEEE 754 Floating Point Standard',
+    sourceUrl: 'https://en.wikipedia.org/wiki/IEEE_754',
+    examples: {
+      good: ['price: "19.99" (string for currency)', 'count: 42 (integer)', 'amount_cents: 1999 (integer)'],
+      bad: ['price: 19.99 (float precision errors)', 'Mixing integers and floats']
+    }
+  },
+  {
+    id: 'datatypes-005',
+    name: 'Use Boolean Types Correctly',
+    category: 'Data Types & Validation',
+    severity: 'warning',
+    description: 'Use actual boolean values (true/false) instead of strings, numbers, or other representations.',
+    rationale: 'Boolean types are clearer and prevent ambiguity.',
+    impact: 'String booleans like "true" require parsing and can cause errors.',
+    source: 'JSON RFC 7159 (IETF)',
+    sourceUrl: 'https://tools.ietf.org/html/rfc7159',
+    examples: {
+      good: ['isActive: true', 'hasPermission: false'],
+      bad: ['isActive: "true"', 'hasPermission: 1', 'isActive: "yes"']
+    }
+  },
+  {
+    id: 'validation-001',
+    name: 'Implement Input Validation',
+    category: 'Data Types & Validation',
+    severity: 'error',
+    description: 'Validate all input parameters: required fields, data types, formats, ranges, and constraints.',
+    rationale: 'Input validation prevents security vulnerabilities and ensures data integrity.',
+    impact: 'Missing validation allows invalid data, SQL injection, and other attacks.',
+    source: 'OWASP API Security Top 10',
+    sourceUrl: 'https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/',
+    examples: {
+      good: ['Validate email format', 'Check string length limits', 'Verify enum values', 'Range checks for numbers'],
+      bad: ['Accept any input', 'No validation', 'Trust client data']
+    }
+  },
+  {
+    id: 'validation-002',
+    name: 'Return Validation Errors with Field Information',
+    category: 'Data Types & Validation',
+    severity: 'warning',
+    description: 'When validation fails, return which fields failed and why in a structured format.',
+    rationale: 'Field-level errors help clients highlight specific problems in forms.',
+    impact: 'Generic validation errors make it hard for users to fix their input.',
+    source: 'Microsoft REST API Guidelines',
+    sourceUrl: 'https://github.com/microsoft/api-guidelines/blob/vNext/Guidelines.md#7102-error-condition-responses',
+    examples: {
+      good: ['{ errors: [{ field: "email", message: "Invalid format" }] }'],
+      bad: ['{ error: "Validation failed" }', 'Generic error messages']
+    }
+  },
+  {
+    id: 'operations-001',
+    name: 'Support Bulk Operations',
+    category: 'API Operations',
+    severity: 'info',
+    description: 'Provide endpoints for bulk create, update, and delete operations to improve efficiency.',
+    rationale: 'Bulk operations reduce network round trips and improve performance for batch operations.',
+    impact: 'Without bulk operations, clients must make many individual requests.',
+    source: 'Google Cloud API Design Guide',
+    sourceUrl: 'https://cloud.google.com/apis/design/standard_methods#batch_get',
+    examples: {
+      good: ['POST /users/bulk', 'PATCH /users/bulk', 'Accepts array of items'],
+      bad: ['Only single-item operations', 'No batch support']
+    }
+  },
+  {
+    id: 'operations-002',
+    name: 'Implement Partial Updates with PATCH',
+    category: 'API Operations',
+    severity: 'warning',
+    description: 'Support PATCH method for partial updates instead of requiring full resource replacement.',
+    rationale: 'PATCH allows updating specific fields without sending the entire resource.',
+    impact: 'Requiring full updates wastes bandwidth and can cause race conditions.',
+    source: 'HTTP PATCH RFC 5789 (IETF)',
+    sourceUrl: 'https://tools.ietf.org/html/rfc5789',
+    examples: {
+      good: ['PATCH /users/1 { "email": "new@example.com" }', 'Update only changed fields'],
+      bad: ['Only PUT supported', 'Must send entire object']
+    }
+  },
+  {
+    id: 'operations-003',
+    name: 'Support Asynchronous Operations',
+    category: 'API Operations',
+    severity: 'info',
+    description: 'For long-running operations, return 202 Accepted with a status endpoint for polling.',
+    rationale: 'Async operations prevent timeouts and provide better user experience.',
+    impact: 'Synchronous long operations cause timeouts and poor UX.',
+    source: 'Microsoft REST API Guidelines',
+    sourceUrl: 'https://github.com/microsoft/api-guidelines/blob/vNext/Guidelines.md#13-long-running-operations',
+    examples: {
+      good: ['202 Accepted with Location header', 'GET /operations/{id} for status'],
+      bad: ['Blocking requests', 'Request timeouts', 'No status updates']
+    }
+  },
+  {
+    id: 'schema-001',
+    name: 'Use Nullable vs Optional Fields Correctly',
+    category: 'Data Types & Validation',
+    severity: 'warning',
+    description: 'Distinguish between optional fields (can be omitted) and nullable fields (can be null).',
+    rationale: 'Clear distinction prevents confusion about whether to send null or omit the field.',
+    impact: 'Ambiguity leads to inconsistent client implementations.',
+    source: 'OpenAPI Specification 3.0',
+    sourceUrl: 'https://spec.openapis.org/oas/v3.0.0#properties',
+    examples: {
+      good: ['Optional: field can be omitted', 'Nullable: field present but null', 'Required + nullable: must be present, can be null'],
+      bad: ['Unclear if null or undefined', 'Inconsistent handling']
+    }
+  },
+  {
+    id: 'schema-002',
+    name: 'Define Maximum and Minimum Constraints',
+    category: 'Data Types & Validation',
+    severity: 'info',
+    description: 'Specify min/max values for numbers, min/max length for strings, and array size limits.',
+    rationale: 'Constraints prevent resource exhaustion and validate business rules.',
+    impact: 'No constraints allow unreasonable values that can break systems.',
+    source: 'JSON Schema Specification',
+    sourceUrl: 'https://json-schema.org/understanding-json-schema/reference/numeric.html',
+    examples: {
+      good: ['age: min=0, max=150', 'username: minLength=3, maxLength=50', 'items: maxItems=100'],
+      bad: ['No constraints', 'Unlimited input sizes', 'No range validation']
+    }
+  },
+  {
+    id: 'schema-003',
+    name: 'Use Enums for Fixed Value Sets',
+    category: 'Data Types & Validation',
+    severity: 'warning',
+    description: 'Use enumeration types for fields with a fixed set of possible values.',
+    rationale: 'Enums enforce valid values and make the API self-documenting.',
+    impact: 'String fields without enums allow invalid values.',
+    source: 'OpenAPI Specification',
+    sourceUrl: 'https://spec.openapis.org/oas/v3.0.0#schema-object',
+    examples: {
+      good: ['status: enum ["active", "inactive", "suspended"]', 'type: enum ["admin", "user", "guest"]'],
+      bad: ['status: string (any value)', 'No validation of allowed values']
+    }
+  },
+  {
+    id: 'response-003',
+    name: 'Return Appropriate Response for Each Method',
+    category: 'API Operations',
+    severity: 'error',
+    description: 'GET returns resource, POST returns created resource with Location, PUT returns updated resource, DELETE returns 204 No Content.',
+    rationale: 'Standard response patterns make APIs predictable and RESTful.',
+    impact: 'Inconsistent responses confuse developers.',
+    source: 'Microsoft REST API Guidelines',
+    sourceUrl: 'https://github.com/microsoft/api-guidelines/blob/vNext/Guidelines.md#741-post',
+    examples: {
+      good: ['POST returns 201 + Location + created object', 'DELETE returns 204 No Content', 'GET returns 200 + resource'],
+      bad: ['POST returns 200 without Location', 'DELETE returns full object', 'Inconsistent patterns']
+    }
+  },
+  {
+    id: 'response-004',
+    name: 'Include Resource Links (HATEOAS)',
+    category: 'API Operations',
+    severity: 'info',
+    description: 'Include hypermedia links to related resources and available actions.',
+    rationale: 'HATEOAS makes APIs self-discoverable and reduces coupling.',
+    impact: 'Without links, clients must hardcode URLs and guess available operations.',
+    source: 'RESTful Web Services',
+    sourceUrl: 'https://en.wikipedia.org/wiki/HATEOAS',
+    examples: {
+      good: ['{ id: 1, _links: { self: "/users/1", posts: "/users/1/posts" } }'],
+      bad: ['No links', 'Clients hardcode URLs']
+    }
+  },
+  {
+    id: 'parameters-001',
+    name: 'Use Query Parameters for Optional Filters',
+    category: 'API Operations',
+    severity: 'warning',
+    description: 'Optional parameters should be in query string, not in URL path or request body.',
+    rationale: 'Query parameters are the standard way to pass optional filters and options.',
+    impact: 'Misplaced parameters make the API harder to use and cache.',
+    source: 'W3C URI Design Guidelines',
+    sourceUrl: 'https://www.w3.org/Provider/Style/URI',
+    examples: {
+      good: ['/users?status=active&role=admin', '/products?category=electronics'],
+      bad: ['/users/active/admin', 'POST body for GET filters']
+    }
+  },
+  {
+    id: 'parameters-002',
+    name: 'Document Parameter Types and Formats',
+    category: 'Data Types & Validation',
+    severity: 'error',
+    description: 'Clearly document the type, format, and constraints for all parameters.',
+    rationale: 'Clear parameter documentation prevents errors and reduces support burden.',
+    impact: 'Undocumented parameters lead to trial-and-error development.',
+    source: 'OpenAPI Specification',
+    sourceUrl: 'https://spec.openapis.org/oas/v3.0.0#parameter-object',
+    examples: {
+      good: ['limit: integer, min=1, max=100, default=20', 'date: string, format=date-time'],
+      bad: ['Undocumented parameters', 'No type information']
+    }
+  },
+  {
+    id: 'parameters-003',
+    name: 'Provide Default Values for Optional Parameters',
+    category: 'API Operations',
+    severity: 'info',
+    description: 'Optional parameters should have sensible default values documented.',
+    rationale: 'Defaults make the API easier to use and reduce client code.',
+    impact: 'No defaults force clients to always specify all parameters.',
+    source: 'API Design Patterns by JJ Geewax',
+    sourceUrl: 'https://www.manning.com/books/api-design-patterns',
+    examples: {
+      good: ['limit defaults to 20', 'sort defaults to created_at:desc'],
+      bad: ['No defaults specified', 'Required to pass all parameters']
+    }
+  },
+  {
+    id: 'arrays-001',
+    name: 'Always Return Arrays for Collections',
+    category: 'Data Types & Validation',
+    severity: 'error',
+    description: 'Collection endpoints should always return arrays, even if empty or containing one item.',
+    rationale: 'Consistent array responses simplify client code and prevent type errors.',
+    impact: 'Returning single objects for one-item collections breaks client code.',
+    source: 'Google JSON Style Guide',
+    sourceUrl: 'https://google.github.io/styleguide/jsoncstyleguide.xml#Collections_and_Arrays',
+    examples: {
+      good: ['GET /users returns [] or [{...}, {...}]', 'Always array type'],
+      bad: ['Returns object for single item', 'Returns null for empty']
+    }
+  },
+  {
+    id: 'arrays-002',
+    name: 'Validate Array Size Limits',
+    category: 'Data Types & Validation',
+    severity: 'warning',
+    description: 'Set and enforce maximum array sizes in requests to prevent resource exhaustion.',
+    rationale: 'Unlimited arrays can be used for DoS attacks and consume excessive resources.',
+    impact: 'Large arrays can crash servers or consume all memory.',
+    source: 'OWASP API Security Top 10',
+    sourceUrl: 'https://owasp.org/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption/',
+    examples: {
+      good: ['maxItems: 1000 in schema', 'Reject requests with >1000 items'],
+      bad: ['No array size limits', 'Accept unlimited arrays']
+    }
+  },
+  {
+    id: 'strings-001',
+    name: 'Define String Length Limits',
+    category: 'Data Types & Validation',
+    severity: 'warning',
+    description: 'Set minLength and maxLength constraints on all string fields.',
+    rationale: 'String limits prevent buffer overflows and resource exhaustion.',
+    impact: 'Unlimited strings can cause database errors and memory issues.',
+    source: 'OWASP Input Validation Cheat Sheet',
+    sourceUrl: 'https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html',
+    examples: {
+      good: ['username: minLength=3, maxLength=50', 'description: maxLength=5000'],
+      bad: ['No length limits', 'Accept any string length']
+    }
+  },
+  {
+    id: 'strings-002',
+    name: 'Use Format Constraints for Structured Strings',
+    category: 'Data Types & Validation',
+    severity: 'warning',
+    description: 'Use format constraints (email, uri, uuid, date-time) for structured string values.',
+    rationale: 'Format validation ensures data quality and prevents errors.',
+    impact: 'Invalid formats cause downstream errors and data corruption.',
+    source: 'JSON Schema Validation',
+    sourceUrl: 'https://json-schema.org/understanding-json-schema/reference/string.html#format',
+    examples: {
+      good: ['email: format=email', 'website: format=uri', 'userId: format=uuid'],
+      bad: ['No format validation', 'Accept invalid emails/URLs']
+    }
+  },
+  {
+    id: 'performance-006',
+    name: 'Implement Request/Response Size Limits',
+    category: 'Performance',
+    severity: 'warning',
+    description: 'Set maximum payload sizes for requests and responses to prevent resource exhaustion.',
+    rationale: 'Size limits prevent DoS attacks and ensure predictable resource usage.',
+    impact: 'Unlimited payloads can exhaust memory and bandwidth.',
+    source: 'OWASP API Security Top 10',
+    sourceUrl: 'https://owasp.org/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption/',
+    examples: {
+      good: ['Max request: 1MB', 'Max response: 10MB', '413 Payload Too Large'],
+      bad: ['No size limits', 'Accept unlimited data']
+    }
+  },
+  {
+    id: 'performance-007',
+    name: 'Use Database Query Optimization',
+    category: 'Performance',
+    severity: 'warning',
+    description: 'Optimize database queries: use indexes, avoid N+1 queries, limit returned fields.',
+    rationale: 'Query optimization is critical for API performance at scale.',
+    impact: 'Slow queries cause timeouts and poor user experience.',
+    source: 'Database Performance Best Practices',
+    sourceUrl: 'https://use-the-index-luke.com/',
+    examples: {
+      good: ['Indexed fields', 'Eager loading', 'Field projection', 'Query optimization'],
+      bad: ['Full table scans', 'N+1 queries', 'No indexes', 'Fetching unnecessary data']
+    }
+  },
+  {
+    id: 'nulls-001',
+    name: 'Handle Null Values Consistently',
+    category: 'Data Types & Validation',
+    severity: 'warning',
+    description: 'Define clear rules for null handling: omit nulls or include them consistently.',
+    rationale: 'Consistent null handling prevents confusion and parsing errors.',
+    impact: 'Inconsistent nulls complicate client code.',
+    source: 'JSON RFC 7159',
+    sourceUrl: 'https://tools.ietf.org/html/rfc7159#section-3',
+    examples: {
+      good: ['Always omit null fields', 'Always include with null', 'Document your choice'],
+      bad: ['Sometimes null, sometimes omitted', 'Inconsistent handling']
+    }
+  },
+  {
+    id: 'objects-001',
+    name: 'Use Nested Objects Appropriately',
+    category: 'Data Types & Validation',
+    severity: 'info',
+    description: 'Group related fields in nested objects for clarity, but avoid excessive nesting (max 3-4 levels).',
+    rationale: 'Proper nesting improves organization but too much makes data hard to access.',
+    impact: 'Flat structures are hard to understand; deep nesting is hard to traverse.',
+    source: 'Google JSON Style Guide',
+    sourceUrl: 'https://google.github.io/styleguide/jsoncstyleguide.xml',
+    examples: {
+      good: ['{ address: { street, city, country } }', 'Logical grouping, 2-3 levels'],
+      bad: ['All fields at root', 'Nested 5+ levels deep']
+    }
   }
 ];
 
