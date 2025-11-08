@@ -1,0 +1,224 @@
+<div class="inspector-container">
+  <mat-card class="header-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>settings</mat-icon>
+        API Design Inspector
+      </mat-card-title>
+      <mat-card-subtitle>
+        Analyze public web service APIs against industry best practices and design guidelines
+      </mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+
+  <mat-card class="selector-card">
+    <mat-card-content>
+      <div class="selection-row">
+        <mat-form-field class="service-select" appearance="outline">
+          <mat-label>Select a Web Service</mat-label>
+          <mat-select [(ngModel)]="selectedService" [disabled]="isAnalyzing()">
+            <mat-option *ngFor="let service of services()" [value]="service.url">
+              <div class="service-option">
+                <div class="service-name">{{ service.name }}</div>
+                <div class="service-description">{{ service.description }}</div>
+              </div>
+            </mat-option>
+          </mat-select>
+          <mat-icon matPrefix>language</mat-icon>
+          <mat-hint>Choose a public API to analyze</mat-hint>
+        </mat-form-field>
+
+        <button
+          mat-raised-button
+          color="primary"
+          class="analyze-button"
+          (click)="analyzeApi()"
+          [disabled]="!selectedService() || isAnalyzing()"
+        >
+          <mat-icon>analytics</mat-icon>
+          <span *ngIf="!isAnalyzing()">Analyze API</span>
+          <span *ngIf="isAnalyzing()">Analyzing...</span>
+        </button>
+      </div>
+
+      <div *ngIf="isAnalyzing()" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Analyzing API design patterns and best practices...</p>
+      </div>
+
+      <div *ngIf="error()" class="error-message">
+        <mat-icon>error</mat-icon>
+        {{ error() }}
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <div *ngIf="analysisResult() as result" class="results-section">
+    <!-- Summary Card -->
+    <mat-card class="summary-card">
+      <mat-card-header>
+        <mat-card-title>Analysis Summary</mat-card-title>
+        <mat-card-subtitle>{{ result.serviceName }} - {{ result.serviceUrl }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="summary-grid">
+          <div class="score-circle" [style.border-color]="getScoreColor(result.overallScore)">
+            <div class="score-value" [style.color]="getScoreColor(result.overallScore)">
+              {{ result.overallScore }}
+            </div>
+            <div class="score-label">Overall Score</div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value">{{ result.summary.totalRules }}</div>
+              <div class="stat-label">Rules Checked</div>
+            </div>
+            <div class="stat-item passed">
+              <div class="stat-value">{{ result.summary.passedRules }}</div>
+              <div class="stat-label">Passed</div>
+            </div>
+            <div class="stat-item failed">
+              <div class="stat-value">{{ result.summary.failedRules }}</div>
+              <div class="stat-label">Failed</div>
+            </div>
+            <div class="stat-item warnings">
+              <div class="stat-value">{{ result.summary.warningRules }}</div>
+              <div class="stat-label">Warnings</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="export-section">
+          <button mat-raised-button color="accent" (click)="exportToPdf()">
+            <mat-icon>picture_as_pdf</mat-icon>
+            Export to PDF
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Violations by Category -->
+    <mat-card class="violations-card" *ngIf="result.violations && result.violations.length > 0">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>warning</mat-icon>
+          Issues and Violations
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-accordion multi>
+          <mat-expansion-panel *ngFor="let category of getCategoryKeys()">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                {{ category }}
+              </mat-panel-title>
+              <mat-panel-description>
+                {{ getViolationsByCategory()[category].length }} issue(s)
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="violations-list">
+              <div *ngFor="let violation of getViolationsByCategory()[category]" class="violation-item">
+                <div class="violation-header">
+                  <mat-chip [color]="getSeverityColor(violation.severity)" selected>
+                    {{ violation.severity.toUpperCase() }}
+                  </mat-chip>
+                  <h3>{{ violation.ruleName }}</h3>
+                </div>
+
+                <div class="violation-details" *ngIf="violation.endpoint">
+                  <strong>Endpoint:</strong> <code>{{ violation.method }} {{ violation.endpoint }}</code>
+                </div>
+
+                <div class="violation-section">
+                  <strong>Description:</strong>
+                  <p>{{ violation.description }}</p>
+                </div>
+
+                <div class="violation-section">
+                  <strong>Details:</strong>
+                  <p>{{ violation.details }}</p>
+                </div>
+
+                <div class="violation-section recommendation">
+                  <strong>
+                    <mat-icon>lightbulb</mat-icon>
+                    Recommendation:
+                  </strong>
+                  <p>{{ violation.recommendation }}</p>
+                </div>
+
+                <div class="violation-section impact">
+                  <strong>
+                    <mat-icon>info</mat-icon>
+                    Impact:
+                  </strong>
+                  <p>{{ violation.impact }}</p>
+                </div>
+
+                <div class="violation-section" *ngIf="violation.examples && violation.examples.length > 0">
+                  <strong>Examples:</strong>
+                  <ul>
+                    <li *ngFor="let example of violation.examples">{{ example }}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Recommendations Card -->
+    <mat-card class="recommendations-card" *ngIf="result.recommendations && result.recommendations.length > 0">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>checklist</mat-icon>
+          Improvement Recommendations
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div *ngFor="let recommendation of result.recommendations; let i = index" class="recommendation-item">
+          <div class="recommendation-header">
+            <mat-chip [color]="getPriorityColor(recommendation.priority)" selected>
+              {{ recommendation.priority.toUpperCase() }} PRIORITY
+            </mat-chip>
+            <h3>{{ i + 1 }}. {{ recommendation.title }}</h3>
+          </div>
+
+          <div class="recommendation-category">
+            <mat-icon>category</mat-icon>
+            {{ recommendation.category }}
+          </div>
+
+          <div class="recommendation-description">
+            <p>{{ recommendation.description }}</p>
+          </div>
+
+          <div class="action-items" *ngIf="recommendation.actionItems && recommendation.actionItems.length > 0">
+            <strong>Action Items:</strong>
+            <ul>
+              <li *ngFor="let action of recommendation.actionItems">
+                <mat-icon>check_circle_outline</mat-icon>
+                {{ action }}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- No Issues Card -->
+    <mat-card class="no-issues-card" *ngIf="result.violations.length === 0">
+      <mat-card-content>
+        <div class="no-issues-content">
+          <mat-icon>check_circle</mat-icon>
+          <h2>Excellent!</h2>
+          <p>No violations found. This API follows all the design guidelines and best practices.</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+

@@ -1,0 +1,25 @@
+{
+  "name": "api-inspection-api",
+  "version": "1.0.0",
+  "description": "Backend API for API Design Inspector",
+  "main": "analyze.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": ["api", "analysis", "serverless"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ]
+  }
+}
+
