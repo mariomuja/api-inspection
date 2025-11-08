@@ -171,6 +171,26 @@ html, body {
   }
 }
 
+/* OpenAPI Dialog Scrollbar Fix */
+.openapi-dialog-container {
+  .mat-mdc-dialog-container {
+    overflow-y: auto !important;
+    max-height: 90vh !important;
+  }
+
+  .mat-mdc-dialog-content {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  .mat-mdc-tab-body-wrapper,
+  .mat-mdc-tab-body-content,
+  .mat-mdc-tab-body {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+}
+
 /* Hover effect colors for different services */
 .service-select-panel .mat-mdc-option {
   &:nth-child(5n+1):hover {

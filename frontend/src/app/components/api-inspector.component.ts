@@ -277,11 +277,12 @@ export class ApiInspectorComponent implements OnInit {
     const dialogRef = this.dialog.open(OpenApiDialogComponent, {
       width: '90vw',
       maxWidth: '1200px',
-      height: '80vh',
+      maxHeight: '90vh',
       data: {
         spec: spec,
         highlightEndpoint: endpoint
-      }
+      },
+      panelClass: 'openapi-dialog-container'
     });
   }
 

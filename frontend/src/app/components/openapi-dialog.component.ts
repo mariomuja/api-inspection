@@ -155,8 +155,31 @@ import { MatTabsModule } from '@angular/material/tabs';
     mat-dialog-content {
       padding: 24px;
       min-height: 400px;
-      overflow-y: auto;
-      max-height: calc(80vh - 160px);
+      overflow: visible !important;
+      max-height: none !important;
+    }
+
+    ::ng-deep .mat-mdc-dialog-content {
+      overflow: visible !important;
+      max-height: none !important;
+    }
+
+    ::ng-deep .mat-mdc-tab-body-content {
+      overflow: visible !important;
+      max-height: none !important;
+    }
+
+    ::ng-deep mat-tab-group {
+      overflow: visible !important;
+    }
+
+    ::ng-deep .mat-mdc-tab-body-wrapper {
+      overflow: visible !important;
+      max-height: none !important;
+    }
+
+    ::ng-deep .mat-mdc-tab-body {
+      overflow: visible !important;
     }
 
     .spec-info {
@@ -177,7 +200,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 
     .tab-content {
       padding: 20px 0;
-      overflow: visible;
+      overflow: visible !important;
     }
 
     .all-endpoints {
