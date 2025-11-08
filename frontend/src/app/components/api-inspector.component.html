@@ -86,50 +86,6 @@
   </mat-card>
 
   <div *ngIf="analysisResult() as result" class="results-section">
-    <!-- Summary Card -->
-    <mat-card class="summary-card">
-      <mat-card-header>
-        <mat-card-title>Analysis Summary</mat-card-title>
-        <mat-card-subtitle>{{ result.serviceName }} - {{ result.serviceUrl }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="summary-grid">
-          <div class="score-circle" [style.border-color]="getScoreColor(result.overallScore)">
-            <div class="score-value" [style.color]="getScoreColor(result.overallScore)">
-              {{ result.overallScore }}
-            </div>
-            <div class="score-label">Overall Score</div>
-          </div>
-
-          <div class="stats-grid">
-            <div class="stat-item">
-              <div class="stat-value">{{ result.summary.totalRules }}</div>
-              <div class="stat-label">Rules Checked</div>
-            </div>
-            <div class="stat-item passed">
-              <div class="stat-value">{{ result.summary.passedRules }}</div>
-              <div class="stat-label">Passed</div>
-            </div>
-            <div class="stat-item failed">
-              <div class="stat-value">{{ result.summary.failedRules }}</div>
-              <div class="stat-label">Failed</div>
-            </div>
-            <div class="stat-item warnings">
-              <div class="stat-value">{{ result.summary.warningRules }}</div>
-              <div class="stat-label">Warnings</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="export-section">
-          <button mat-raised-button color="accent" (click)="exportToPdf()">
-            <mat-icon>picture_as_pdf</mat-icon>
-            Export to PDF
-          </button>
-        </div>
-      </mat-card-content>
-    </mat-card>
-
     <!-- Violations by Category -->
     <mat-card class="violations-card" *ngIf="result.violations && result.violations.length > 0">
       <mat-card-header>
@@ -137,6 +93,12 @@
           <mat-icon>warning</mat-icon>
           Issues and Violations
         </mat-card-title>
+        <div class="header-actions">
+          <button mat-raised-button color="accent" (click)="exportToPdf()">
+            <mat-icon>picture_as_pdf</mat-icon>
+            Export to PDF
+          </button>
+        </div>
       </mat-card-header>
       <mat-card-content>
         <mat-accordion multi>
