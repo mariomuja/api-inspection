@@ -13,6 +13,27 @@
 
   <mat-card class="selector-card">
     <mat-card-content>
+      <div class="source-selection-row">
+        <mat-form-field class="source-select" appearance="outline">
+          <mat-label>Validation Source</mat-label>
+          <mat-select 
+            [(ngModel)]="selectedSource"
+            [disabled]="isAnalyzing()">
+            <mat-option *ngFor="let source of ruleSources()" [value]="source.id">
+              <div class="source-option">
+                <div class="source-header">
+                  <span class="source-name">{{ source.name }}</span>
+                  <span class="source-org">{{ source.organization }}</span>
+                </div>
+                <div class="source-description">{{ source.description }}</div>
+              </div>
+            </mat-option>
+          </mat-select>
+          <mat-icon matPrefix>rule</mat-icon>
+          <mat-hint>Choose which standards to validate against</mat-hint>
+        </mat-form-field>
+      </div>
+
       <div class="selection-row">
         <mat-form-field class="service-select" appearance="outline">
           <mat-label>Select a Web Service</mat-label>

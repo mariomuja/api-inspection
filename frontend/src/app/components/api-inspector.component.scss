@@ -47,6 +47,14 @@
       padding: 24px !important;
     }
 
+    .source-selection-row {
+      margin-bottom: 20px;
+
+      .source-select {
+        width: 100%;
+      }
+    }
+
     .selection-row {
       display: flex;
       gap: 16px;

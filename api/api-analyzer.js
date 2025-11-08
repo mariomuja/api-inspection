@@ -1,10 +1,37 @@
 const { designRules } = require('./design-rules');
 
 class ApiAnalyzer {
-  constructor(serviceUrl) {
+  constructor(serviceUrl, sourceFilter = 'all') {
     this.serviceUrl = serviceUrl;
+    this.sourceFilter = sourceFilter;
     this.violations = [];
     this.endpoints = [];
+    this.filteredRules = this.getFilteredRules();
+  }
+
+  getFilteredRules() {
+    if (this.sourceFilter === 'all') {
+      return designRules;
+    }
+
+    // Define which rules belong to which source
+    const sourceRuleMap = {
+      'google': ['rest-001', 'rest-004', 'error-001', 'naming-001'],
+      'microsoft': ['rest-002', 'pagination-001'],
+      'owasp': ['security-001', 'security-002', 'security-003'],
+      'ietf': ['http-001', 'http-003', 'idempotency-001', 'performance-002'],
+      'jsonapi': ['filtering-001', 'sorting-001', 'response-001', 'performance-001'],
+      'openapi': ['doc-001', 'doc-002'],
+      'w3c': ['http-002'],
+      'stripe': ['version-001'],
+      'paypal': ['rest-005'],
+      'github': ['pagination-002'],
+      'aws': ['response-002'],
+      'atlassian': ['error-002']
+    };
+
+    const ruleIds = sourceRuleMap[this.sourceFilter] || [];
+    return designRules.filter(rule => ruleIds.includes(rule.id));
   }
 
   async analyze() {
@@ -37,8 +64,8 @@ class ApiAnalyzer {
         violations: this.violations,
         recommendations,
         summary: {
-          totalRules: designRules.length,
-          passedRules: designRules.length - this.violations.length,
+          totalRules: this.filteredRules.length,
+          passedRules: this.filteredRules.length - this.violations.length,
           failedRules: this.violations.filter(v => v.severity === 'error').length,
           warningRules: this.violations.filter(v => v.severity === 'warning').length
         }
@@ -86,10 +113,10 @@ class ApiAnalyzer {
   }
 
   analyzeRestPrinciples() {
-    const rule001 = designRules.find(r => r.id === 'rest-001');
-    const rule002 = designRules.find(r => r.id === 'rest-002');
-    const rule003 = designRules.find(r => r.id === 'rest-003');
-    const rule004 = designRules.find(r => r.id === 'rest-004');
+    const rule001 = this.filteredRules.find(r => r.id === 'rest-001');
+    const rule002 = this.filteredRules.find(r => r.id === 'rest-002');
+    const rule003 = this.filteredRules.find(r => r.id === 'rest-003');
+    const rule004 = this.filteredRules.find(r => r.id === 'rest-004');
 
     this.endpoints.forEach(endpoint => {
       const path = endpoint.path.toLowerCase();
@@ -133,7 +160,7 @@ class ApiAnalyzer {
   }
 
   analyzeHttpStandards() {
-    const httpRule = designRules.find(r => r.id === 'http-002');
+    const httpRule = this.filteredRules.find(r => r.id === 'http-002');
     
     // Check for CORS headers
     let hasCorsHeaders = false;
@@ -152,7 +179,7 @@ class ApiAnalyzer {
   }
 
   analyzeVersioning() {
-    const versionRule = designRules.find(r => r.id === 'version-001');
+    const versionRule = this.filteredRules.find(r => r.id === 'version-001');
     
     // Check if URL contains version
     const hasVersionInUrl = this.serviceUrl.match(/\/v\d+/) || 
@@ -172,8 +199,8 @@ class ApiAnalyzer {
   }
 
   analyzeSecurity() {
-    const httpsRule = designRules.find(r => r.id === 'security-001');
-    const rateLimitRule = designRules.find(r => r.id === 'security-003');
+    const httpsRule = this.filteredRules.find(r => r.id === 'security-001');
+    const rateLimitRule = this.filteredRules.find(r => r.id === 'security-003');
 
     // Check for HTTPS
     if (!this.serviceUrl.startsWith('https://')) {
@@ -202,7 +229,7 @@ class ApiAnalyzer {
 
   analyzeDataManagement() {
     // These are harder to detect automatically, so we'll add informational suggestions
-    const paginationRule = designRules.find(r => r.id === 'pagination-001');
+    const paginationRule = this.filteredRules.find(r => r.id === 'pagination-001');
     
     // Check if any endpoint returns potentially large collections
     const collectionEndpoints = this.endpoints.filter(e => 
@@ -223,7 +250,7 @@ class ApiAnalyzer {
   analyzeErrorHandling() {
     // This would require actually making failing requests
     // For demonstration, we'll note it as something to verify
-    const errorRule = designRules.find(r => r.id === 'error-001');
+    const errorRule = this.filteredRules.find(r => r.id === 'error-001');
     
     // Add as an informational note
     this.addViolation({
@@ -233,7 +260,7 @@ class ApiAnalyzer {
   }
 
   analyzeResponseDesign() {
-    const consistencyRule = designRules.find(r => r.id === 'response-001');
+    const consistencyRule = this.filteredRules.find(r => r.id === 'response-001');
     
     // This would require fetching and comparing multiple responses
     // For now, add as informational
@@ -244,7 +271,7 @@ class ApiAnalyzer {
   }
 
   analyzeNamingConventions() {
-    const namingRule = designRules.find(r => r.id === 'naming-001');
+    const namingRule = this.filteredRules.find(r => r.id === 'naming-001');
     
     // This would require analyzing response bodies
     // Add as informational recommendation
@@ -255,7 +282,7 @@ class ApiAnalyzer {
   }
 
   analyzePerformance() {
-    const cachingRule = designRules.find(r => r.id === 'performance-002');
+    const cachingRule = this.filteredRules.find(r => r.id === 'performance-002');
     
     // Check for caching headers
     const hasCachingHeaders = this.endpoints.some(e => 

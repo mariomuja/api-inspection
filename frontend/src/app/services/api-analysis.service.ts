@@ -258,8 +258,11 @@ export class ApiAnalysisService {
     return of(this.sampleServices);
   }
 
-  analyzeApi(serviceUrl: string): Observable<ApiAnalysisResult> {
-    return this.http.post<ApiAnalysisResult>(`${this.apiUrl}/analyze`, { serviceUrl });
+  analyzeApi(serviceUrl: string, sourceFilter?: string): Observable<ApiAnalysisResult> {
+    return this.http.post<ApiAnalysisResult>(`${this.apiUrl}/analyze`, { 
+      serviceUrl,
+      sourceFilter: sourceFilter || 'all'
+    });
   }
 }
 

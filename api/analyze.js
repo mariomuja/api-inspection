@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { serviceUrl } = req.body;
+    const { serviceUrl, sourceFilter } = req.body;
 
     if (!serviceUrl) {
       return res.status(400).json({ 
@@ -40,7 +40,7 @@ module.exports = async (req, res) => {
     }
 
     // Analyze the API
-    const analyzer = new ApiAnalyzer(serviceUrl);
+    const analyzer = new ApiAnalyzer(serviceUrl, sourceFilter || 'all');
     const result = await analyzer.analyze();
 
     // Return the analysis result

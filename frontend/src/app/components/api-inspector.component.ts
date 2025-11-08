@@ -17,6 +17,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApiAnalysisService } from '../services/api-analysis.service';
 import { PdfExportService } from '../services/pdf-export.service';
 import { WebService, ApiAnalysisResult, Violation } from '../models/web-service.model';
+import { RuleSource, RULE_SOURCES } from '../models/rule-source.model';
 
 @Component({
   selector: 'app-api-inspector',
@@ -42,7 +43,9 @@ import { WebService, ApiAnalysisResult, Violation } from '../models/web-service.
 })
 export class ApiInspectorComponent implements OnInit {
   services = signal<WebService[]>([]);
+  ruleSources = signal<RuleSource[]>(RULE_SOURCES);
   selectedService = signal<string>('');
+  selectedSource = signal<string>('all');
   customUrl = signal<string>('');
   useCustomUrl = signal<boolean>(false);
   isAnalyzing = signal<boolean>(false);
@@ -111,7 +114,9 @@ export class ApiInspectorComponent implements OnInit {
     this.error.set('');
     this.analysisResult.set(null);
 
-    this.apiAnalysisService.analyzeApi(urlToAnalyze).subscribe({
+    const sourceFilter = this.selectedSource();
+
+    this.apiAnalysisService.analyzeApi(urlToAnalyze, sourceFilter).subscribe({
       next: (result) => {
         this.analysisResult.set(result);
         this.isAnalyzing.set(false);
