@@ -287,7 +287,9 @@ class ApiAnalyzer {
       details: details || rule.description,
       recommendation: rule.rationale,
       impact: rule.impact || rule.rationale,
-      examples: rule.examples ? rule.examples.good : []
+      examples: rule.examples ? rule.examples.good : [],
+      source: rule.source || '',
+      sourceUrl: rule.sourceUrl || ''
     });
   }
 

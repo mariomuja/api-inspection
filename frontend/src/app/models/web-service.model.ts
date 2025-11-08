@@ -33,6 +33,8 @@ export interface Violation {
   recommendation: string;
   impact: string;
   examples?: string[];
+  source?: string;
+  sourceUrl?: string;
 }
 
 export interface Recommendation {

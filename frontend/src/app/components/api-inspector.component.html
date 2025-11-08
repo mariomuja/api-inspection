@@ -121,6 +121,15 @@
                   <h3>{{ violation.ruleName }}</h3>
                 </div>
 
+                <div class="violation-source" *ngIf="violation.source">
+                  <mat-icon>verified</mat-icon>
+                  <span>Source: </span>
+                  <a [href]="violation.sourceUrl" target="_blank" rel="noopener noreferrer">
+                    {{ violation.source }}
+                    <mat-icon class="external-link">open_in_new</mat-icon>
+                  </a>
+                </div>
+
                 <div class="violation-details" *ngIf="violation.endpoint">
                   <strong>Endpoint:</strong> <code>{{ violation.method }} {{ violation.endpoint }}</code>
                 </div>

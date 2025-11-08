@@ -198,7 +198,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
 
             h3 {
               margin: 0;
@@ -210,6 +210,51 @@
             mat-chip {
               height: 24px;
               font-size: 11px;
+            }
+          }
+
+          .violation-source {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 100%);
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border-left: 3px solid #667eea;
+            font-size: 13px;
+
+            mat-icon {
+              font-size: 18px;
+              width: 18px;
+              height: 18px;
+              color: #667eea;
+            }
+
+            span {
+              color: #666;
+              font-weight: 500;
+            }
+
+            a {
+              color: #667eea;
+              text-decoration: none;
+              font-weight: 600;
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              transition: all 0.2s ease;
+
+              &:hover {
+                color: #5568d3;
+                text-decoration: underline;
+              }
+
+              .external-link {
+                font-size: 14px;
+                width: 14px;
+                height: 14px;
+              }
             }
           }
 
