@@ -15,12 +15,17 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatMenuModule } from '@angular/material/menu';
 
 import { ApiAnalysisService } from '../services/api-analysis.service';
 import { PdfExportService } from '../services/pdf-export.service';
+import { ExportService } from '../services/export.service';
+import { CustomRulesService } from '../services/custom-rules.service';
 import { WebService, ApiAnalysisResult, Violation } from '../models/web-service.model';
 import { RuleSource, RULE_SOURCES } from '../models/rule-source.model';
 import { OpenApiDialogComponent } from './openapi-dialog.component';
+import { CustomRulesDialogComponent } from './custom-rules-dialog.component';
+import { AuthDialogComponent } from './auth-dialog.component';
 
 @Component({
   selector: 'app-api-inspector',
@@ -41,7 +46,8 @@ import { OpenApiDialogComponent } from './openapi-dialog.component';
     MatDividerModule,
     MatSnackBarModule,
     MatDialogModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatMenuModule
   ],
   templateUrl: './api-inspector.component.html',
   styleUrls: ['./api-inspector.component.scss']
@@ -65,6 +71,8 @@ export class ApiInspectorComponent implements OnInit {
   constructor(
     private apiAnalysisService: ApiAnalysisService,
     private pdfExportService: PdfExportService,
+    private exportService: ExportService,
+    private customRulesService: CustomRulesService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {}
@@ -154,21 +162,95 @@ export class ApiInspectorComponent implements OnInit {
 
   async exportToPdf(): Promise<void> {
     const result = this.analysisResult();
-    if (!result) {
-      return;
-    }
+    if (!result) return;
 
     try {
       await this.pdfExportService.exportToPdf(result);
-      this.snackBar.open('PDF exported successfully', 'Close', {
-        duration: 3000
-      });
+      this.snackBar.open('PDF exported successfully', 'Close', { duration: 3000 });
     } catch (err) {
-      this.snackBar.open('Failed to export PDF', 'Close', {
-        duration: 3000
-      });
+      this.snackBar.open('Failed to export PDF', 'Close', { duration: 3000 });
       console.error('PDF export error:', err);
     }
+  }
+
+  exportToMarkdown(): void {
+    const result = this.analysisResult();
+    if (!result) return;
+    this.exportService.exportToMarkdown(result);
+    this.snackBar.open('Markdown exported successfully', 'Close', { duration: 3000 });
+  }
+
+  exportToHtml(): void {
+    const result = this.analysisResult();
+    if (!result) return;
+    this.exportService.exportToHtml(result);
+    this.snackBar.open('HTML exported successfully', 'Close', { duration: 3000 });
+  }
+
+  exportToCsv(): void {
+    const result = this.analysisResult();
+    if (!result) return;
+    this.exportService.exportToCsv(result);
+    this.snackBar.open('CSV exported successfully', 'Close', { duration: 3000 });
+  }
+
+  exportToJson(): void {
+    const result = this.analysisResult();
+    if (!result) return;
+    this.exportService.exportToJson(result);
+    this.snackBar.open('JSON exported successfully', 'Close', { duration: 3000 });
+  }
+
+  exportToGitHub(): void {
+    const result = this.analysisResult();
+    if (!result) return;
+    this.exportService.exportToGitHubIssues(result);
+    this.snackBar.open('GitHub issues format exported', 'Close', { duration: 3000 });
+  }
+
+  exportToJira(): void {
+    const result = this.analysisResult();
+    if (!result) return;
+    this.exportService.exportToJira(result);
+    this.snackBar.open('JIRA format exported successfully', 'Close', { duration: 3000 });
+  }
+
+  copyBadgeMarkdown(): void {
+    const result = this.analysisResult();
+    if (!result) return;
+    
+    const badgeUrl = this.exportService.generateBadgeUrl(result);
+    const markdown = `![API Quality](${badgeUrl})`;
+    
+    navigator.clipboard.writeText(markdown).then(() => {
+      this.snackBar.open('Badge markdown copied to clipboard!', 'Close', { duration: 3000 });
+    });
+  }
+
+  openCustomRulesDialog(): void {
+    const dialogRef = this.dialog.open(CustomRulesDialogComponent, {
+      width: '800px',
+      maxHeight: '90vh'
+    });
+
+    dialogRef.afterClosed().subscribe(rules => {
+      if (rules) {
+        this.snackBar.open(`${rules.length} custom rules active`, 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  openAuthDialog(): void {
+    const dialogRef = this.dialog.open(AuthDialogComponent, {
+      width: '600px',
+      maxHeight: '90vh'
+    });
+
+    dialogRef.afterClosed().subscribe(authConfig => {
+      if (authConfig) {
+        this.snackBar.open('Authentication configured', 'Close', { duration: 3000 });
+      }
+    });
   }
 
   getSeverityColor(severity: string): string {

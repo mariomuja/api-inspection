@@ -61,6 +61,8 @@ class ApiAnalyzer {
       this.analyzeOperations();
       this.analyzeSchemas();
       this.analyzeParameters();
+      this.analyzeSecurityVulnerabilities();
+      this.analyzeHttpMethodSupport();
 
       // Calculate overall score
       const overallScore = this.calculateScore();
@@ -118,13 +120,44 @@ class ApiAnalyzer {
           // GET might fail, that's okay
         }
         
+        // Test for all HTTP methods to detect allowed operations
+        const methodsToTest = ['OPTIONS', 'POST', 'PUT', 'PATCH', 'DELETE'];
+        const supportedMethods = ['GET']; // We know GET works
+        const methodResponses = {};
+
+        for (const method of methodsToTest) {
+          try {
+            const testResponse = await fetch(url, { 
+              method,
+              headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: method === 'GET' || method === 'HEAD' || method === 'OPTIONS' ? undefined : JSON.stringify({})
+            });
+            
+            methodResponses[method] = {
+              status: testResponse.status,
+              headers: Object.fromEntries(testResponse.headers.entries())
+            };
+
+            // Method is supported if we don't get 405 Method Not Allowed
+            if (testResponse.status !== 405) {
+              supportedMethods.push(method);
+            }
+          } catch (err) {
+            // Method test failed, likely not supported
+          }
+        }
+        
         this.endpoints.push({
           path,
           url,
-          methods: this.extractAllowedMethods(headResponse),
+          methods: supportedMethods,
           statusCode: headResponse.status,
           headers: headers,
-          responseData: responseData
+          responseData: responseData,
+          methodResponses: methodResponses
         });
       } catch (err) {
         // Endpoint might not exist, that's okay
@@ -864,6 +897,189 @@ class ApiAnalyzer {
     score -= infoCount * 2;     // -2 points per info
 
     return Math.max(0, Math.min(100, score));
+  }
+
+  analyzeSecurityVulnerabilities() {
+    // Check for common security vulnerabilities
+    this.endpoints.forEach(endpoint => {
+      const headers = endpoint.headers || {};
+      
+      // Check for missing security headers
+      if (!headers['strict-transport-security']) {
+        const hstsRule = this.filteredRules.find(r => r.category === 'Security' && r.name.includes('HTTPS'));
+        if (hstsRule) {
+          this.addViolation({
+            rule: hstsRule,
+            endpoint: endpoint.path,
+            method: 'GET',
+            details: `Missing Strict-Transport-Security header. This header enforces HTTPS and protects against protocol downgrade attacks.`
+          });
+        }
+      }
+
+      // Check for missing X-Content-Type-Options
+      if (!headers['x-content-type-options']) {
+        const secRule = this.filteredRules.find(r => r.id === 'security-001');
+        if (secRule) {
+          this.addViolation({
+            rule: secRule,
+            endpoint: endpoint.path,
+            method: 'GET',
+            details: `Missing X-Content-Type-Options header. Set to "nosniff" to prevent MIME type sniffing attacks.`
+          });
+        }
+      }
+
+      // Check for missing X-Frame-Options
+      if (!headers['x-frame-options']) {
+        const frameRule = this.filteredRules.find(r => r.category === 'Security' && r.name.includes('Frame'));
+        if (!frameRule) {
+          // Create ad-hoc security violation if no specific rule
+          const secRule = this.filteredRules.find(r => r.id === 'security-001');
+          if (secRule) {
+            this.addViolation({
+              rule: secRule,
+              endpoint: endpoint.path,
+              method: 'GET',
+              details: `Missing X-Frame-Options header. Set to "DENY" or "SAMEORIGIN" to prevent clickjacking attacks.`
+            });
+          }
+        }
+      }
+
+      // Check for exposed error details (potential information disclosure)
+      if (endpoint.responseData && typeof endpoint.responseData === 'object') {
+        const dataStr = JSON.stringify(endpoint.responseData).toLowerCase();
+        const sensitivePatterns = ['password', 'token', 'secret', 'apikey', 'api_key', 'private_key'];
+        
+        sensitivePatterns.forEach(pattern => {
+          if (dataStr.includes(pattern)) {
+            const secRule = this.filteredRules.find(r => r.id === 'security-002');
+            if (secRule) {
+              this.addViolation({
+                rule: secRule,
+                endpoint: endpoint.path,
+                method: 'GET',
+                details: `Potential information disclosure: Response contains sensitive field name "${pattern}". Ensure sensitive data is not exposed.`
+              });
+            }
+          }
+        });
+      }
+
+      // Check for SQL injection vulnerabilities in URL parameters
+      if (endpoint.path.includes('?')) {
+        const secRule = this.filteredRules.find(r => r.id === 'security-001');
+        if (secRule) {
+          this.addViolation({
+            rule: secRule,
+            endpoint: endpoint.path,
+            method: 'GET',
+            details: `Endpoint uses query parameters. Ensure proper input validation and parameterized queries to prevent SQL injection.`
+          });
+        }
+      }
+    });
+  }
+
+  analyzeHttpMethodSupport() {
+    // Analyze which HTTP methods are supported and if they're appropriate
+    this.endpoints.forEach(endpoint => {
+      const methods = endpoint.methods || [];
+      const methodResponses = endpoint.methodResponses || {};
+
+      // Check if collection endpoints support POST for creating resources
+      if (endpoint.path && endpoint.path.match(/s$|ies$/)) {
+        if (!methods.includes('POST') && !methods.includes('post')) {
+          const restRule = this.filteredRules.find(r => r.id === 'rest-002');
+          if (restRule) {
+            this.addViolation({
+              rule: restRule,
+              endpoint: endpoint.path,
+              details: `Collection endpoint "${endpoint.path}" doesn't support POST method for creating new resources.`
+            });
+          }
+        }
+      }
+
+      // Check if individual resource endpoints support PUT/PATCH for updates
+      if (endpoint.path && endpoint.path.match(/\/\d+$/)) {
+        if (!methods.includes('PUT') && !methods.includes('PATCH')) {
+          const restRule = this.filteredRules.find(r => r.id === 'rest-002');
+          if (restRule) {
+            this.addViolation({
+              rule: restRule,
+              endpoint: endpoint.path,
+              details: `Resource endpoint "${endpoint.path}" should support PUT or PATCH for updates.`
+            });
+          }
+        }
+
+        if (!methods.includes('DELETE')) {
+          const restRule = this.filteredRules.find(r => r.id === 'rest-002');
+          if (restRule) {
+            this.addViolation({
+              rule: restRule,
+              endpoint: endpoint.path,
+              method: 'DELETE',
+              details: `Resource endpoint "${endpoint.path}" should support DELETE for removing resources.`
+            });
+          }
+        }
+      }
+
+      // Check if OPTIONS is supported for CORS preflight
+      if (!methods.includes('OPTIONS')) {
+        const corsRule = this.filteredRules.find(r => r.id === 'http-002');
+        if (corsRule) {
+          this.addViolation({
+            rule: corsRule,
+            endpoint: endpoint.path,
+            method: 'OPTIONS',
+            details: `Endpoint "${endpoint.path}" doesn't support OPTIONS method. This is required for CORS preflight requests.`
+          });
+        }
+      }
+
+      // Check for proper status codes on different methods
+      if (methodResponses.POST && methodResponses.POST.status === 200) {
+        const httpRule = this.filteredRules.find(r => r.id === 'http-001');
+        if (httpRule) {
+          this.addViolation({
+            rule: httpRule,
+            endpoint: endpoint.path,
+            method: 'POST',
+            details: `POST request returns 200 OK. Should return 201 Created when a new resource is created.`
+          });
+        }
+      }
+
+      if (methodResponses.DELETE && methodResponses.DELETE.status === 200) {
+        const httpRule = this.filteredRules.find(r => r.id === 'http-001');
+        if (httpRule) {
+          this.addViolation({
+            rule: httpRule,
+            endpoint: endpoint.path,
+            method: 'DELETE',
+            details: `DELETE request returns 200. Consider returning 204 No Content for successful deletions.`
+          });
+        }
+      }
+
+      // Check for idempotency on PUT and PATCH
+      if (methods.includes('PUT') || methods.includes('PATCH')) {
+        const idempotencyRule = this.filteredRules.find(r => r.id === 'idempotency-001');
+        if (idempotencyRule) {
+          // This is informational - remind about idempotency
+          this.addViolation({
+            rule: idempotencyRule,
+            endpoint: endpoint.path,
+            method: methods.includes('PUT') ? 'PUT' : 'PATCH',
+            details: `Ensure ${methods.includes('PUT') ? 'PUT' : 'PATCH'} operations on "${endpoint.path}" are idempotent (can be repeated safely).`
+          });
+        }
+      }
+    });
   }
 
   generateRecommendations() {

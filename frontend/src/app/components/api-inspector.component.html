@@ -9,6 +9,16 @@
         Analyze public web service APIs against industry best practices and design guidelines
       </mat-card-subtitle>
     </mat-card-header>
+    <div class="header-buttons">
+      <button mat-stroked-button (click)="openCustomRulesDialog()" class="header-action-btn">
+        <mat-icon>rule_settings</mat-icon>
+        Custom Rules
+      </button>
+      <button mat-stroked-button (click)="openAuthDialog()" class="header-action-btn">
+        <mat-icon>vpn_key</mat-icon>
+        Authentication
+      </button>
+    </div>
   </mat-card>
 
   <mat-card class="selector-card">
@@ -115,10 +125,47 @@
           Issues and Violations
         </mat-card-title>
         <div class="header-actions">
-          <button mat-raised-button color="accent" (click)="exportToPdf()">
-            <mat-icon>picture_as_pdf</mat-icon>
-            Export to PDF
+          <button mat-raised-button color="accent" [matMenuTriggerFor]="exportMenu">
+            <mat-icon>download</mat-icon>
+            Export Results
+            <mat-icon>arrow_drop_down</mat-icon>
           </button>
+          <mat-menu #exportMenu="matMenu">
+            <button mat-menu-item (click)="exportToPdf()">
+              <mat-icon>picture_as_pdf</mat-icon>
+              <span>PDF Document</span>
+            </button>
+            <button mat-menu-item (click)="exportToMarkdown()">
+              <mat-icon>article</mat-icon>
+              <span>Markdown (.md)</span>
+            </button>
+            <button mat-menu-item (click)="exportToHtml()">
+              <mat-icon>html</mat-icon>
+              <span>HTML Report</span>
+            </button>
+            <button mat-menu-item (click)="exportToCsv()">
+              <mat-icon>table_chart</mat-icon>
+              <span>CSV Spreadsheet</span>
+            </button>
+            <button mat-menu-item (click)="exportToJson()">
+              <mat-icon>data_object</mat-icon>
+              <span>JSON Data</span>
+            </button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item (click)="exportToGitHub()">
+              <mat-icon>bug_report</mat-icon>
+              <span>GitHub Issues</span>
+            </button>
+            <button mat-menu-item (click)="exportToJira()">
+              <mat-icon>task</mat-icon>
+              <span>JIRA Issues</span>
+            </button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item (click)="copyBadgeMarkdown()">
+              <mat-icon>military_tech</mat-icon>
+              <span>Copy Quality Badge</span>
+            </button>
+          </mat-menu>
         </div>
       </mat-card-header>
       <mat-card-content>
