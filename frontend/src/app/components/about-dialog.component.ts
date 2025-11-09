@@ -16,7 +16,7 @@ import { MatIconModule } from '@angular/material/icon';
   template: `
     <h2 mat-dialog-title>
       <mat-icon>help</mat-icon>
-      About API Design Inspector
+      About API Inspector
       <button mat-icon-button mat-dialog-close class="close-button">
         <mat-icon>close</mat-icon>
       </button>
@@ -25,9 +25,9 @@ import { MatIconModule } from '@angular/material/icon';
     <mat-dialog-content>
       <div class="about-content">
         <section class="intro">
-          <h3>🔍 What is API Design Inspector?</h3>
+          <h3>🔍 What is API Inspector?</h3>
           <p>
-            API Design Inspector is a comprehensive tool that analyzes RESTful web service APIs 
+            API Inspector is a comprehensive tool that analyzes RESTful web service APIs 
             against industry-standard design guidelines and best practices. It helps developers 
             and API architects ensure their APIs are well-designed, secure, and follow established 
             conventions from leading tech companies and standards organizations.

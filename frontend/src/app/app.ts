@@ -9,5 +9,5 @@ import { ApiInspectorComponent } from './components/api-inspector.component';
   styleUrl: './app.scss'
 })
 export class App {
-  title = 'API Design Inspector';
+  title = 'API Inspector';
 }
