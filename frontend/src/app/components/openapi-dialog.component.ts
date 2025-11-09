@@ -373,6 +373,10 @@ export class OpenApiDialogComponent implements OnInit {
     this.spec.set(this.data.spec);
     this.highlightedEndpoint.set(this.data.highlightEndpoint);
     
+    console.log('OpenAPI Spec:', this.spec());
+    console.log('Highlighted Endpoint:', this.highlightedEndpoint());
+    console.log('Available paths:', this.spec()?.paths ? Object.keys(this.spec().paths) : 'No paths');
+    
     // Find the matching path in OpenAPI spec
     if (this.spec() && this.spec().paths) {
       const endpoint = this.highlightedEndpoint();
@@ -381,13 +385,58 @@ export class OpenApiDialogComponent implements OnInit {
       // Try exact match first
       if (paths[endpoint]) {
         this.highlightedPath.set(paths[endpoint]);
+        console.log('Exact match found for:', endpoint);
       } else {
-        // Try to find similar path
-        const similarPath = Object.keys(paths).find(p => 
-          p.includes(endpoint) || endpoint.includes(p.replace(/\{.*?\}/g, ''))
-        );
-        if (similarPath) {
-          this.highlightedPath.set(paths[similarPath]);
+        // Try to find similar path - more flexible matching
+        const pathKeys = Object.keys(paths);
+        
+        // Try various matching strategies
+        let matchedKey = null;
+        
+        // 1. Check if endpoint starts with any path
+        matchedKey = pathKeys.find(p => endpoint.startsWith(p));
+        
+        // 2. Check if any path starts with endpoint
+        if (!matchedKey) {
+          matchedKey = pathKeys.find(p => p.startsWith(endpoint));
+        }
+        
+        // 3. Check for partial matches (ignoring query strings)
+        if (!matchedKey) {
+          const endpointBase = endpoint.split('?')[0];
+          matchedKey = pathKeys.find(p => {
+            const pathBase = p.split('?')[0];
+            return endpointBase === pathBase || 
+                   endpointBase.includes(pathBase) || 
+                   pathBase.includes(endpointBase);
+          });
+        }
+        
+        // 4. Match with path parameters removed (e.g., /users/1 matches /users)
+        if (!matchedKey) {
+          const endpointSegments = endpoint.split('/').filter(Boolean);
+          matchedKey = pathKeys.find(p => {
+            const pathSegments = p.split('/').filter(Boolean);
+            // Match if first segments are the same
+            return pathSegments.length > 0 && 
+                   endpointSegments.length >= pathSegments.length &&
+                   pathSegments.every((seg, i) => 
+                     seg === endpointSegments[i] || seg.startsWith('{')
+                   );
+          });
+        }
+        
+        if (matchedKey) {
+          this.highlightedPath.set(paths[matchedKey]);
+          console.log('Similar match found:', matchedKey, 'for endpoint:', endpoint);
+        } else {
+          console.warn('No match found for endpoint:', endpoint);
+          // If no match, use the first available path
+          if (pathKeys.length > 0) {
+            const firstKey = pathKeys[0];
+            this.highlightedPath.set(paths[firstKey]);
+            console.log('Using first available path:', firstKey);
+          }
         }
       }
     }
